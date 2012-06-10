@@ -1,0 +1,37 @@
+# Copyright 2010, 2011, 2012 Kevin Ryde
+# 
+# This file is part of Wx-Perl-PodBrowser.
+# 
+# Wx-Perl-PodBrowser is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+# 
+# Wx-Perl-PodBrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# Build-Depends could have the "maximum_tests" modules from META.yml
+# for more tests, but they're optional author tests really and would
+# just make the build tools drag in more stuff.
+
+Source: libwx-perl-podbrowser-perl
+Section: perl
+Priority: optional
+Build-Depends: cdbs, debhelper (>= 5)
+Maintainer: Kevin Ryde <user42@zip.com.au>
+Standards-Version: 3.9.3
+Homepage: http://user42.tuxfamily.org/wx-perl-podbrowser/index.html
+Bugs: mailto:user42@zip.com.au
+
+Package: libwx-perl-podbrowser-perl
+Architecture: all
+Depends: libwx-perl, ${perl:Depends}, ${misc:Depends}
+Suggests: libsoftware-license-perl
+Description: POD browser in wxPerl
+ A POD browser widget using wxRichTextCtrl.
