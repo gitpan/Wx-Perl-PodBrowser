@@ -433,11 +433,11 @@ HERE
   if (@ARGV) {
     $browser->goto_pod (guess => $ARGV[0]);
   } else {
-    # $browser->goto_pod (string => "=pod\n\nabc");
-    $browser->goto_pod (string => $str);
+     $browser->goto_pod (string => "=pod\n\nabc");
     # $browser->goto_pod (string => $str);
-    # $browser->goto_pod (module => 'Math::PlanePath::PeanoCurve',
-    #                    section => 'SEE ALSO');
+    # $browser->goto_pod (string => $str);
+    $browser->goto_pod (module => 'Math::PlanePath::PeanoCurve',
+                        section => 'SEE ALSO');
     # $browser->goto_pod (module => 'Math::Symbolic');
     # $browser->goto_pod (module => 'FindBin');
     # $browser->goto_pod (module  => 'perlfunc',
@@ -446,6 +446,8 @@ HERE
     # $browser->goto_pod (module => 'perlop');
     # $browser->goto_pod (string  => "=head1 NAME\n\nplain\n");
     # $browser->goto_pod (string  => "=head1 NAME\n\nplain\n");
+
+    # $browser->pod_print();
   }
   $app->MainLoop;
   exit 0;

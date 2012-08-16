@@ -17,5 +17,10 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 2, August 2012
+    - PodBrowser new "File/Print" menuitems
+    - PodBrowser new methods reload(), go_back(), go_forward(),
+      popup_about_dialog(), about_dialog_info()
+
 Version 1, June 2012
     - the first version.

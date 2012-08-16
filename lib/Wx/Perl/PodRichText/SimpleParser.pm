@@ -17,10 +17,11 @@
 
 
 package Wx::Perl::PodRichText::SimpleParser;
+use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 1;
+our $VERSION = 2;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -36,7 +37,7 @@ sub new {
     Scalar::Util::weaken ($self->{'richtext'});
   }
 
-  $self->nbsp_for_S(1);   # latin-1 0xA0
+  $self->nbsp_for_S(1);   # latin-1 0xA0 for RichText
   $self->preserve_whitespace (1);  # eg. two-spaces for full stop
   $self->accept_targets ('text','TEXT');
   return $self;
@@ -49,6 +50,11 @@ sub new {
 #   ### DESTROY done ...
 # }
 
+# wxRichTextLineBreakChar() and ->LineBreak() not wrapped in 0.9909
+#   eval{Wx::wxRichTextLineBreakChar()}
+#
+my $linebreak = chr(29); # per src/richtext/richtextbuffer.cpp
+
 sub _handle_text {
   my ($self, $text) = @_;
   ### _handle_text: $text
@@ -60,11 +66,7 @@ sub _handle_text {
   }
 
   if ($self->{'verbatim'}) {
-    $text =~ s/[ \t\r]*\n/\x1D/g; # newlines to Wx::wxRichTextLineBreakChar()
-    #   if ($text eq '') {
-    #     ### collapse empty verbatim ...
-    #     return '';
-    #   }
+    $text =~ s/[ \t\r]*\n/$linebreak/g; # newlines become forced linebreaks
   } else {
     if ($self->{'start_Para'}) {
       $text =~ s/^\s+//;
@@ -153,11 +155,10 @@ sub _handle_element_start {
   } elsif ($element eq 'L') {
     ### link type: $attrs->{'type'}
     if ($attrs->{'type'} eq 'pod') {
+      # ENHANCE-ME: escape "/" etc in "to", and maybe in "section"
       my $url = 'pod://';
-      my $to = $attrs->{'to'};
-      my $section = $attrs->{'section'};
-      if (defined $to)      { $url .= $to; }
-      if (defined $section) { $url .= "#$section"; }
+      if (defined $attrs->{'to'})      { $url .= $attrs->{'to'}; }
+      if (defined $attrs->{'section'}) { $url .= "#$attrs->{'section'}"; }
       $richtext->BeginURL ($url);
       $self->{'in_URL'}++;
     } elsif ($attrs->{'type'} eq 'url') {
@@ -226,7 +227,7 @@ sub _handle_element_end {
 
   } elsif ($element eq 'L') {
     $richtext->EndCharacterStyle;
-    if ($self->{'in_URL'}) {
+    if ($self->{'in_URL'}) {  # if in a URL'ed link
       $self->{'in_URL'}--;
       $richtext->EndURL;
     }
@@ -275,7 +276,7 @@ sub set_item_range {
 1;
 __END__
 
-=for stopwords Ryde
+=for stopwords Wx Wx-Perl-PodBrowser Ryde PodRichText RichTextCtrl RichTextBuffer RichText PodBrowser
 
 =head1 NAME
 
@@ -291,25 +292,30 @@ RichTextCtrl.  Exactly how much it does versus how much it leaves to
 PodRichText is not settled, but perhaps in the future it might be possible
 to parse into any RichTextCtrl or RichTextBuffer.
 
-C<Pod::Simple> begin/ends become calls to C<BeginBold()>, C<EndBold()>, etc,
-and similarly C<BeginLeftIndent()> and C<EndLeftIndent()> for paragraphs.
-For indent RichText takes an amount in millimetres and the current code
-makes a value which is about two "em"s of the default font.
+C<Pod::Simple> start/end handler calls generate calls to the RichText
+C<BeginBold()>, C<EndBold()>, etc, or C<BeginLeftIndent()> and
+C<EndLeftIndent()> etc for paragraphs, etc.  RichText indentation is an
+amount in millimetres and the current code makes a value which is about two
+"em"s of the default font.
 
-For reference, C<Pod::Parser> is also good for breaking up POD, and is used
-by L<Wx::Perl::PodEditor> (in C<Wx::Perl::PodEditor::PodParser>).  An
-advantage of C<Pod::Simple> is that C<parse_lines()> there allows the main
-loop to run and push a few lines at a time into the parse.  There's no
-reason C<Pod::Parser> couldn't do the same but its version 1.37 doesn't have
-it setup.
+=head2 Other Ways to Do It
+
+C<Pod::Parser> is also good for breaking up POD, in combination with
+C<Pod::Escape> and C<Pod::ParseLink>.  It's used by L<Wx::Perl::PodEditor>
+(in L<Wx::Perl::PodEditor::PodParser>).
+
+An advantage of C<Pod::Simple> is that its C<parse_lines()> allows the main
+loop to push a few lines at a time into the parse to process a big document
+piec-by-piece.  There's no reason C<Pod::Parser> couldn't do the same but as
+of its version 1.37 it doesn't.
 
 
 =cut
 
-# A "code" stylesheet entry is used for C<CE<lt>E<gt>> and
+# A "code" stylesheet entry is used for C<< C<> >> and
 # verbatim paragraphs to get teletype font.  RichTextCtrl combines that font
-# nicely with any bold, italic, etc in or around a C<CE<lt>E<gt>>.
-# C<FE<lt>E<gt>> and C<LE<lt>E<gt>> have stylesheet entries too thinking
+# nicely with any bold, italic, etc in or around a C<< C<> >>.
+# C<< F<> >> and C<< L<> >> have stylesheet entries too thinking
 # perhaps to make them configurable, but perhaps italic and underline are
 # enough and don't need the stylesheet.
 
@@ -317,12 +323,15 @@ it setup.
 
 =head1 SEE ALSO
 
-L<Pod::Siple>,
-L<Wx::Perl::PodRichText>.
+L<Pod::Simple>,
+L<Wx>,
+L<Wx::Perl::PodRichText>
+
+L<Wx::Perl::PodEditor::PodParser>
 
 =head1 HOME PAGE
 
-http://user42.tuxfamily.org/math-image/index.html
+L<http://user42.tuxfamily.org/math-image/index.html>
 
 =head1 LICENSE
 
@@ -339,6 +348,6 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 more details.
 
 You should have received a copy of the GNU General Public License along with
-Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
+Wx-Perl-PodBrowser.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut

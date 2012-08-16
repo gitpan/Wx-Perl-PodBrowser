@@ -28,7 +28,7 @@ MyTestHelpers::nowarnings();
 
 
 eval { require Wx }
-  or plan skip_all => "due to Wx or display not available -- $@";
+  or plan skip_all => "due to Wx display not available -- $@";
 
 plan tests => 6;
 
@@ -40,7 +40,7 @@ require Wx::Perl::PodRichText;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 1;
+my $want_version = 2;
 {
   is ($Wx::Perl::PodRichText::VERSION, $want_version,
       'VERSION variable');

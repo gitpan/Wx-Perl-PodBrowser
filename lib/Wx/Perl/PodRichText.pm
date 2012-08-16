@@ -17,13 +17,15 @@
 
 
 package Wx::Perl::PodRichText;
+use 5.008;
 use strict;
+use warnings;
 use Carp;
 use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 1;
+our $VERSION = 2;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -48,7 +50,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 1;
+  our $VERSION = 2;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -170,7 +172,7 @@ sub set_size_chars {
 
 # cf Wx::Display->GetFromWindow($window), but wxDisplay doesn't have
 # millimetre sizes?
-sub x_mm_to_pixels {  
+sub x_mm_to_pixels {
   my ($window, $mm) = @_;
   my $size_pixels = Wx::GetDisplaySize();
   my $size_mm = Wx::GetDisplaySizeMM();
@@ -203,7 +205,7 @@ sub get_height_lines {
   my $font = $attrs->GetFont;
   my $font_points = $font->GetPointSize;
   my $font_mm = $font_points * (1/72 * 25.4);
-  my ($width,$height) = $self->GetSizeWH;
+  my (undef,$height) = $self->GetSizeWH;
   ### lines: y_pixels_to_mm($self,$height) / $font_mm
   return y_pixels_to_mm($self,$height) / $font_mm;
 
@@ -337,7 +339,7 @@ sub goto_pod {
     ### $section
     if (defined (my $pos = $self->get_section_position($section))) {
       $self->SetInsertionPoint($pos);
-      my ($x,$y) = $self->PositionToXY($pos);
+      my (undef,$y) = $self->PositionToXY($pos);
       $location{'line'} = $y;
       # end and back again scrolls window to have point at the top
       $self->ShowPosition($self->GetLastPosition);
@@ -389,7 +391,7 @@ sub parse_some {
   $self->SetInsertionPoint($self->GetLastPosition); # for WriteText
   my $fh = $self->{'fh'} || return;
   my $t = Time::HiRes::time();
-  my $eof = 0;
+
   for (;;) {
     my @lines;
     do {
@@ -404,7 +406,7 @@ sub parse_some {
 
         my $section = delete $self->{'section'};
         ### $section
-        my ($x,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
+        my (undef,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
         if ($y == 0) {
           # still at top of document, move to target section
           $self->goto_pod (section => $section,
@@ -558,7 +560,7 @@ sub current_location_line {
   ### current_location_line() ...
   ### location now: $self->{'location'}
   if ($self->{'location'} && %{$self->{'location'}}) {
-    my ($x,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
+    my (undef,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
     $self->{'location'}->{'line'} = $y;
   }
 }
@@ -570,6 +572,7 @@ sub OnKey {
   my ($self, $event) = @_;
   ### PodRichText OnEnter(): $event
   ### keycode: $event->GetKeyCode
+
   if ($event->ControlDown) {
     if ($event->GetKeyCode == ord('b') || $event->GetKeyCode == ord('B')) {
       $self->go_back;
@@ -610,10 +613,45 @@ sub goto_link_at_pos {
   }
 }
 
+#------------------------------------------------------------------------------
+# printing
+
+# return a suitably setup Wx::RichTextPrinting object
+# not documented yet
+sub rich_text_printing {
+  my ($self) = @_;
+  $self->{'printing'} ||= do {
+    my $printing = Wx::RichTextPrinting->new ('', $self);
+    $printing->SetHeaderText('@TITLE@');
+
+    my $footer = Wx::GetTranslation('Page @PAGENUM@ of @PAGESCNT@');
+    $printing->SetFooterText($footer,
+                             Wx::wxRICHTEXT_PAGE_ODD(),
+                             Wx::wxRICHTEXT_PAGE_RIGHT());
+    $printing->SetFooterText($footer,
+                             Wx::wxRICHTEXT_PAGE_EVEN(),
+                             Wx::wxRICHTEXT_PAGE_LEFT());
+    $printing;
+  };
+
+  my $printing = $self->{'printing'};
+  my $title = '';
+  my $location = $self->{'location'};
+  if (defined $location->{'module'}) {
+    $title = $location->{'module'};
+  } elsif (defined $location->{'filename'}) {
+    $title = $location->{'filename'};
+  }
+  $printing->SetTitle($title);
+
+  return $printing;
+}
+
+
 1;
 __END__
 
-=for stopwords Ryde
+=for stopwords Wx Wx-Perl-PodBrowser Ryde RichTextCtrl RichText ascii buttonized latin-1 0xA0 PodRichText filename formatters ie unlinked Gtk linkize PodBrowser
 
 =head1 NAME
 
@@ -627,8 +665,15 @@ Wx::Perl::PodRichText -- POD in a RichTextCtrl
 
 =head1 CLASS HIERARCHY
 
- Wx::Perl::PodRichText
-   Wx::RichTextCtrl
+C<Wx::Perl::PodBrowser> is a subclass of C<Wx::RichTextCtrl>.
+
+    Wx::Object
+      Wx::EvtHandler
+        Wx::Validator
+          Wx::Control
+            Wx::TextCtrlBase
+              Wx::RichTextCtrl
+                 Wx::Perl::PodRichText
 
 =head1 DESCRIPTION
 
@@ -639,11 +684,11 @@ See L<Wx::Perl::PodBrowser> for a whole browser window.
 
 =head2 Details
 
-The initial C<SetSize> is a sensible size for POD, currently about 80
-columns by 30 lines of the default font.  A parent widget can make it bigger
-or smaller as desired.
+The initial widget C<SetSize()> is a sensible size for POD, currently about
+80 columns by 30 lines of the default font.  A parent widget can make it
+bigger or smaller as desired.
 
-The POD to text conversion tries to make use of the RichText features.
+The POD to text conversion tries to use the RichText features.
 
 =over
 
@@ -654,40 +699,40 @@ nicely within C<=over> etc.
 
 =item *
 
-C<=item> bullet points use the RichText bullet feature, and numbered
-C<=item> the RichText numbering likewise.  Circa Wx 2.8.12 numbered points
-seem to display with the text overlapping a big number, but it's presumed
-that's a Wx matter and for small numbers it's fine.
+C<=item> bullet points use the RichText bullets paragraphs, and numbered
+C<=item> the numbered paragraphs likewise.  Circa Wx 2.8.12 big numbers seem
+to display with the text overlapping, but it's presumed that's a Wx matter,
+and for small numbers it's fine anyway.
 
 =item *
 
 Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and with
-C<wxRichTextLineBreakChar> for line breaks at each newline.  Wraparound is
-avoided by a large negative right indent but there's no scroll bar or visual
-indication that there's more text off to the right.  Avoiding wraparound
-helps tables and ascii art.
+C<wxRichTextLineBreakChar> for each newline.  Wraparound is avoided by a
+large negative right indent.  Alas there's no scroll bar or visual
+indication of more text off to the right, but avoiding wraparound helps
+tables and ascii art.
 
 =item *
 
-C<LE<lt>E<gt>> links to URLs are underlined and buttonized with the "URL"
-style.  C<LE<lt>E<gt>> links to POD similarly, but using a C<pod://>
-pseudo-URL.  Is that a good idea?  The URL won't be usable by anything else,
-but the attribute is a handy place to hold the link target.
+C<< LE<lt>E<gt> >> links to URLs are underlined and buttonized with the
+"URL" style.  C<< LE<lt>E<gt> >> links to POD similarly, but using a
+C<pod://> pseudo-URL.  Is a C<pod:> URL a good idea?  It won't be usable by
+anything else, but the attribute is a handy place to hold the link target.
 
-The current code has an C<EVT_TEXT_URL> handler following links to target
-POD or C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it
+The current code has an C<EVT_TEXT_URL()> handler following to target POD,
+or C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it
 might be better to leave that to the browser parent, if some applications
 wanted to display only a single POD.
 
 =item *
 
-C<SE<lt>E<gt>> non-breaking text is done with latin-1 0xA0 non-breaking
-spaces.  RichText obeys those when word wrapping.
+C<< SE<lt>E<gt> >> non-breaking text is done with latin-1 0xA0 non-breaking
+spaces which RichText obeys when word wrapping.
 
 =back
 
-The display is reckoned as text so C<=begin text> sections are included in
-the display.  Other C<=begin> types are ignored.
+The display is reckoned as text so C<=begin text> sections from the POD are
+included in the display.  Other C<=begin> types are ignored.
 
 Reading a large POD file is slow.  The work is done piece-wise from the
 event loop to keep the rest of the application running, but expect
@@ -697,13 +742,13 @@ noticeable lag.
 
 =over
 
-=item C<$podtext = Wx::Perl::PodRichText-E<gt>new()>
+=item C<< $podtext = Wx::Perl::PodRichText->new() >>
 
-=item C<$podtext = Wx::Perl::PodRichText-E<gt>new($id,$parent)>
+=item C<< $podtext = Wx::Perl::PodRichText->new($id,$parent) >>
 
 Create and return a new PodRichText widget.
 
-=item C<$podtext-E<gt>goto_pod (key =E<gt> value, ...)>
+=item C<< $podtext->goto_pod (key => value, ...) >>
 
 Go to a specified POD module, filename, section etc.  The key/value options
 are
@@ -717,35 +762,35 @@ are
     section  => $string
     line     => $integer     line number
 
-The target POD document is given by C<module>, C<filename>, etc.  C<string>
-is POD in a string.  Modules are F<.pod> or F<.pm> in the usual C<@INC> (as
-per C<Pod::Find>).
+The target POD document is given by C<module>, C<filename>, etc.  C<module>
+is sought with L<Pod::Find> in the usual C<@INC>.  C<string> is POD in a
+string.
 
     $podtext->goto_pod (module => "perlpodspec");
 
-C<guess> tries a module or filename.  It's intended for use from a command
-line or similar loose input to let the user enter either module or filename.
+C<guess> tries a module or filename.  It's intended for command line or
+similar loose input to let the user enter either module or filename.
 
 Optional C<section> or C<line> is a position within the document.  They can
-be given alone to move within the currently displayed document.
+be given alone to move in the currently displayed document.
 
-    # move within current displayed document
+    # move within current display
     $podtext->goto_pod (section => "DESCRIPTION");
 
 C<section> can be an C<=head> heading or an C<=item> text.  The first word
-from an C<=item> works as a target too.  This is common for the POD
-formatters and helps cross-references to L<perlfunc> and similar.
+from an C<=item> works too, which is common for the POD formatters and helps
+cross-references to L<perlfunc> and similar.
 
-=item C<@strings = $podtext-E<gt>reload ()>
+=item C<< @strings = $podtext->reload () >>
 
 Re-read the current C<module> or C<filename> source.
 
-=item C<@strings = $podtext-E<gt>get_heading_list ()>
+=item C<< @strings = $podtext->get_heading_list () >>
 
 Return a list of the C<=head> headings in the displayed document.
 
-This list grows as the parse progresses (ie. when the parse yields control
-back to the main loop).
+The heading list grows as the parse progresses, ie. when the parse yields
+control back to the main loop.
 
 =back
 
@@ -754,7 +799,7 @@ back to the main loop).
 C<Wx::wxTE_AUTO_URL> is turned on attempting to pick up unlinked URLs, but
 it doesn't seem to have any effect circa Wx 2.8.12 under Gtk.  Is that
 option only for the plain C<Wx::TextCtrl>?  Could search and linkize
-apparent URLs manually, though perhaps it's best left to C<LE<lt>E<gt>>
+apparent URLs manually, though perhaps it's best left to C<< LE<lt>E<gt> >>
 markup in the source POD anyway.
 
 =head1 SEE ALSO
@@ -763,11 +808,9 @@ L<Wx>,
 L<Wx::Perl::PodBrowser>,
 L<Pod::Find>
 
-L<Padre::Wx::Frame::POD> displays POD by converting to HTML
-
 =head1 HOME PAGE
 
-http://user42.tuxfamily.org/math-image/index.html
+L<http://user42.tuxfamily.org/math-image/index.html>
 
 =head1 LICENSE
 
@@ -784,6 +827,6 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 more details.
 
 You should have received a copy of the GNU General Public License along with
-Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
+Wx-Perl-PodBrowser.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut

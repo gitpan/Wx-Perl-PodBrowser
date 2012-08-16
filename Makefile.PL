@@ -40,13 +40,15 @@ WriteMakefile
      { homepage => 'http://user42.tuxfamily.org/wx-perl-podbrowser/index.html',
        license  => 'http://www.gnu.org/licenses/gpl.html',
      },
+     no_index => { directory=>['devel'] },
+
      optional_features =>
      {
       maximum_interoperation =>
       { description => 'All the optional things Wx-Perl-PodBrowser can use.',
         requires => {
                      'Software::License::GPL_3' => 0,
-                    }
+                    },
       },
      },
    },

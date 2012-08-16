@@ -17,17 +17,10 @@
 # You should have received a copy of the GNU General Public License along
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-use 5.004;
+use 5.008;
 use strict;
 use Wx;
 use Wx::RichText;
-
-# uncomment this to run the ### lines
-use Devel::Comments;
-
-use 5.004;
-use strict;
-use Wx;
 
 # uncomment this to run the ### lines
 use Smart::Comments;

@@ -31,7 +31,7 @@ MyTestHelpers::nowarnings();
 
 
 eval { require Wx }
-  or plan skip_all => "due to Wx or display not available -- $@";
+  or plan skip_all => "due to Wx display not available -- $@";
 
 # Test::Weaken 3 for "contents"
 eval "use Test::Weaken 3; 1"
