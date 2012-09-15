@@ -11,6 +11,7 @@ devel/cpanshell-podreader.pl
 devel/menu-remove.pl
 devel/PodParser.pm
 devel/screenshot.pl
+devel/search.pl
 devel/wx-pod.pl
 examples/wx-podbrowser.pl
 lib/Wx/Perl/PodBrowser.pm

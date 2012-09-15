@@ -26,7 +26,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 2;
+our $VERSION = 3;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -323,9 +323,8 @@ sub _section_menuitem_activate {
 
 sub goto_own_pod {
   my ($self) = @_;
-  $self->goto_pod ($self->own_pod_module);
+  $self->goto_pod (module => $self->own_pod_module);
 }
-
 # not documented yet
 sub own_pod_module {
   my ($self) = @_;

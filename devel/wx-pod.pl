@@ -25,13 +25,6 @@ use Wx::RichText;
 # uncomment this to run the ### lines
 use Devel::Comments;
 
-use 5.004;
-use strict;
-use Wx;
-
-# uncomment this to run the ### lines
-use Smart::Comments;
-
 my $str;
 
 # {

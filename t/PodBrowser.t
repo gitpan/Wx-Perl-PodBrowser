@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 2;
+my $want_version = 3;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -89,6 +89,22 @@ my $want_version = 2;
   require Scalar::Util;
   Scalar::Util::weaken ($browser);
   is ($browser, undef, 'garbage collect when weakened, with about dialog');
+}
+
+#-----------------------------------------------------------------------------
+# goto_own_pod()
+
+{
+  my $browser = Wx::Perl::PodBrowser->new;
+  $browser->Show;
+
+  $browser->goto_own_pod; # check it works enough to open
+
+  # FIXME: segv on close while pod read is pending, or some such
+
+  $app->Yield;
+  $browser->Close;
+  $app->Yield;
 }
 
 #-----------------------------------------------------------------------------

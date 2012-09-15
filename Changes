@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 3, September 2012
+    - PodBrowser fix goto_own_pod() which is the Help/Pod Browser menu
+
 Version 2, August 2012
     - PodBrowser new "File/Print" menuitems
     - PodBrowser new methods reload(), go_back(), go_forward(),

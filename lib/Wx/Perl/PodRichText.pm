@@ -25,7 +25,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 2;
+our $VERSION = 3;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -50,7 +50,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 2;
+  our $VERSION = 3;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
