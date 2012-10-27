@@ -21,10 +21,11 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 3;
+our $VERSION = 4;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
+
 
 sub new {
   my ($class, %options) = @_;
@@ -50,10 +51,11 @@ sub new {
 #   ### DESTROY done ...
 # }
 
-# wxRichTextLineBreakChar() and ->LineBreak() not wrapped in 0.9909
-#   eval{Wx::wxRichTextLineBreakChar()}
+# wxRichTextLineBreakChar() and ->LineBreak() wrapped in wxPerl 0.9911, use
+# if available
 #
-my $linebreak = chr(29); # per src/richtext/richtextbuffer.cpp
+my $linebreak = (eval { Wx::wxRichTextLineBreakChar() }
+                 || chr(29)); # per src/richtext/richtextbuffer.cpp
 
 sub _handle_text {
   my ($self, $text) = @_;
@@ -239,6 +241,7 @@ sub _handle_element_end {
   }
 }
 
+# not documented
 # set the position of $section to $pos
 # if $pos is not given then default to the current insertion point
 sub set_heading_range {
@@ -256,6 +259,8 @@ sub set_heading_range {
   }
   $richtext->emit_changed('heading_list');
 }
+
+# not documented
 sub set_item_range {
   my ($self, $startpos, $endpos) = @_;
 

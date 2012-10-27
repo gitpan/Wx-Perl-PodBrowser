@@ -17,6 +17,10 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 4, October 2012
+    - PodBrowser new methods popup_print(), popup_print_preview(),
+      popup_print_setup(), quit()
+
 Version 3, September 2012
     - PodBrowser fix goto_own_pod() which is the Help/Pod Browser menu
 

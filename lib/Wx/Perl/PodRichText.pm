@@ -16,6 +16,9 @@
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
+# section_position   items and headings
+
+
 package Wx::Perl::PodRichText;
 use 5.008;
 use strict;
@@ -25,7 +28,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 3;
+our $VERSION = 4;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -50,7 +53,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 3;
+  our $VERSION = 4;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -140,7 +143,7 @@ sub new {
   $self->{'forward'} = [];
   $self->{'location'} = undef;
 
-  $self->set_size_chars(80, 30);
+  _Wx_Perl_RichTextBits__set_size_chars($self, 80, 30);
   return $self;
 }
 
@@ -154,8 +157,14 @@ sub DESTROY {
 
 #------------------------------------------------------------------------------
 
-# not documented yet
-sub set_size_chars {
+# Maybe ...
+#
+# =item C<$height = Wx::Perl::RichTextBits::set_size_chars($richtextctrl, $width,$height)>
+#
+# Return the size of a C<wxRichTextCtrl> as width and height in characters
+# of the default font.
+
+sub _Wx_Perl_RichTextBits__set_size_chars {
   my ($self, $width, $height) = @_;
   my $attrs = $self->GetBasicStyle;
   my $font = $attrs->GetFont;
@@ -163,51 +172,30 @@ sub set_size_chars {
   my $font_mm = $font_points * (1/72 * 25.4);
 
   ### $font_mm
-  ### xpixels: x_mm_to_pixels ($self, $width * $font_mm * .8)
-  ### ypixels: y_mm_to_pixels ($self, $height * $font_mm)
+  ### xpixels: _Wx_Perl_WindowBits__x_mm_to_pixels ($self, $width * $font_mm * .8)
+  ### ypixels: _Wx_Perl_WindowBits__y_mm_to_pixels ($self, $height * $font_mm)
 
-  $self->SetSize (x_mm_to_pixels ($self, $width * $font_mm * .8),
-                  y_mm_to_pixels ($self, $height * $font_mm));
+  $self->SetSize (_Wx_Perl_WindowBits__x_mm_to_pixels ($self, $width * $font_mm * .8),
+                  _Wx_Perl_WindowBits__y_mm_to_pixels ($self, $height * $font_mm));
 }
 
-# cf Wx::Display->GetFromWindow($window), but wxDisplay doesn't have
-# millimetre sizes?
-sub x_mm_to_pixels {
-  my ($window, $mm) = @_;
-  my $size_pixels = Wx::GetDisplaySize();
-  my $size_mm = Wx::GetDisplaySizeMM();
-  return $mm * $size_pixels->GetWidth / $size_mm->GetWidth;
-}
-sub y_mm_to_pixels {
-  my ($window, $mm) = @_;
-  my $size_pixels = Wx::GetDisplaySize();
-  my $size_mm = Wx::GetDisplaySizeMM();
-  return $mm * $size_pixels->GetHeight / $size_mm->GetHeight;
-}
-sub y_pixels_to_mm {
-  my ($window, $pixels) = @_;
-  my $size_pixels = Wx::GetDisplaySize();
-  my $size_mm = Wx::GetDisplaySizeMM();
-  return $pixels * $size_mm->GetHeight / $size_pixels->GetHeight;
-}
-# sub pixel_size_mm {
-#   my ($window) = @_;
-#   my $size_pixels = Wx::GetDisplaySize();
-#   my $size_mm = Wx::GetDisplaySizeMM();
-#   return ($size_mm->GetWidth / $size_pixels->GetWidth,
-#           $size_mm->GetHeight / $size_pixels->GetHeight);
-# }
+# Maybe ...
+#
+# =item C<$height = Wx::Perl::RichTextBits::get_height_lines($richtextctrl)>
+#
+# Return the height in lines of a C<wxRichTextCtrl>, as reckoned by the
+# default font height.  This might include a fraction of a line, depending
+# the window height and font height.
 
-# not documented
-sub get_height_lines {
+sub _Wx_Perl_RichTextBits__get_height_lines {
   my ($self) = @_;
   my $attrs = $self->GetBasicStyle;
   my $font = $attrs->GetFont;
   my $font_points = $font->GetPointSize;
   my $font_mm = $font_points * (1/72 * 25.4);
   my (undef,$height) = $self->GetSizeWH;
-  ### lines: y_pixels_to_mm($self,$height) / $font_mm
-  return y_pixels_to_mm($self,$height) / $font_mm;
+  ### lines: _Wx_Perl_WindowBits__y_pixels_to_mm($self,$height) / $font_mm
+  return _Wx_Perl_WindowBits__y_pixels_to_mm($self,$height) / $font_mm;
 
   # ### $height
   # {  my ($outside, $x,$y) = $self->HitTest(Wx::Point->new(0,0));
@@ -220,8 +208,40 @@ sub get_height_lines {
   # return 30;
 }
 
+# cf Wx::Display->GetFromWindow($window), but wxDisplay doesn't have
+# millimetre sizes?
+sub _Wx_Perl_WindowBits__x_mm_to_pixels {
+  my ($window, $mm) = @_;
+  my $size_pixels = Wx::GetDisplaySize();
+  my $size_mm = Wx::GetDisplaySizeMM();
+  return $mm * $size_pixels->GetWidth / $size_mm->GetWidth;
+}
+sub _Wx_Perl_WindowBits__y_mm_to_pixels {
+  my ($window, $mm) = @_;
+  my $size_pixels = Wx::GetDisplaySize();
+  my $size_mm = Wx::GetDisplaySizeMM();
+  return $mm * $size_pixels->GetHeight / $size_mm->GetHeight;
+}
+sub _Wx_Perl_WindowBits__y_pixels_to_mm {
+  my ($window, $pixels) = @_;
+  my $size_pixels = Wx::GetDisplaySize();
+  my $size_mm = Wx::GetDisplaySizeMM();
+  return $pixels * $size_mm->GetHeight / $size_pixels->GetHeight;
+}
+# sub _Wx_Perl_WindowBits__pixel_size_mm {
+#   my ($window) = @_;
+#   my $size_pixels = Wx::GetDisplaySize();
+#   my $size_mm = Wx::GetDisplaySizeMM();
+#   return ($size_mm->GetWidth / $size_pixels->GetWidth,
+#           $size_mm->GetHeight / $size_pixels->GetHeight);
+# }
+
 #------------------------------------------------------------------------------
 # sections
+
+# Maybe:
+# =item C<< $charpos = $podtext->get_section_position () >>
+#
 
 # not documented yet
 sub get_section_position {
@@ -383,6 +403,7 @@ use constant _SLEEP_TIME => 50; # milliseconds
 sub parse_some {
   my ($self, $nofreeze) = @_;
   ### parse_some() ...
+  ### $nofreeze
 
   my $parser = $self->{'parser'}
     || return; # if error out with timer left running maybe
@@ -392,40 +413,35 @@ sub parse_some {
   my $fh = $self->{'fh'} || return;
   my $t = Time::HiRes::time();
 
-  for (;;) {
-    my @lines;
-    do {
-      my $line = <$fh>;
-      push @lines, $line;
-      if (! defined $line) {
-        # eof
-        # FIXME: notice a read error
-        delete $self->{'fh'};
-        $parser->parse_lines (@lines);
-        delete $self->{'parser'};
+  do {
+    my ($lines, $eof) = _read_some_lines ($fh, 20);
+    ### some lines: scalar(@$lines)
+    ### $lines
+    # FIXME: notice a read error
 
-        my $section = delete $self->{'section'};
-        ### $section
-        my (undef,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
-        if ($y == 0) {
-          # still at top of document, move to target section
-          $self->goto_pod (section => $section,
-                           line    => delete $self->{'line'},
-                           no_history => 1);
-        }
+    $parser->parse_lines (@$lines);
 
-        delete $self->{'timer'};
-        delete $self->{'busy'};
-        $self->emit_changed('content');
-        return;
+    if ($eof) {
+      ### EOF ...
+      ### heading list: $self->{'heading_list'}
+      delete $self->{'parser'};
+      delete $self->{'fh'};
+
+      my $section = delete $self->{'section'};
+      ### target section: $section
+      my (undef,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
+      if ($y == 0) {
+        # still at top of document, move to target section
+        $self->goto_pod (section    => $section,
+                         line       => delete $self->{'line'},
+                         no_history => 1);
       }
-    } until (@lines >= 20);
-
-    $parser->parse_lines (@lines);
-    if (abs (Time::HiRes::time() - $t) > _PARSE_TIME) {
-      last;
+      delete $self->{'timer'};
+      delete $self->{'busy'};
+      $self->emit_changed('content');
+      return;
     }
-  }
+  } until (abs(Time::HiRes::time() - $t) > _PARSE_TIME);
 
   if (defined $self->{'section'}
       && defined (my $pos = $self->{'section_positions'}->{$self->{'section'}})) {
@@ -435,8 +451,9 @@ sub parse_some {
       # enough text to ensure position will be at the top of the window
       (undef,$y) = $self->PositionToXY($pos);
       (undef,my $last_y) = $self->PositionToXY($self->GetLastPosition);
-      if ($last_y - $y > $self->get_height_lines * .75) {
-        $self->goto_pod (section => delete $self->{'section'},
+      if ($last_y - $y
+          > 0.75 * _Wx_Perl_RichTextBits__get_height_lines($self)) {
+        $self->goto_pod (section    => delete $self->{'section'},
                          no_history => 1);
       }
     }
@@ -451,6 +468,19 @@ sub parse_some {
   if (! $self->{'timer'}->Start(_SLEEP_TIME, Wx::wxTIMER_ONE_SHOT())) {
     $self->show_error_text (Wx::gettext('Oops, cannot start timer'));
   }
+}
+
+sub _read_some_lines {
+  my ($fh, $count) = @_;
+  my @lines;
+  while (@lines < $count) {
+    my $line = readline($fh);
+    push @lines, $line;  # final undef for Pod::Simple
+    if (! defined $line) {
+      return (\@lines, 1);  # end of file
+    }
+  }
+  return (\@lines, 0);
 }
 
 # for internal use
@@ -490,12 +520,6 @@ sub _stop_timer {
 #------------------------------------------------------------------------------
 # history
 
-sub can_reload {
-  my ($self) = @_;
-  ### can_reload(): $self->{'location'}
-  return (defined $self->{'location'}->{'module'}
-          || defined $self->{'location'}->{'filename'});
-}
 sub reload {
   my ($self) = @_;
   $self->current_location_line;
@@ -505,10 +529,20 @@ sub reload {
   ### history now: $self->{'history'}
 }
 
+# not documented ...
+sub can_reload {
+  my ($self) = @_;
+  ### can_reload(): $self->{'location'}
+  return (defined $self->{'location'}->{'module'}
+          || defined $self->{'location'}->{'filename'});
+}
+
+# not documented ...
 sub can_go_forward {
   my ($self) = @_;
   return @{$self->{'forward'}} > 0;
 }
+
 sub go_forward {
   my ($self) = @_;
   if (defined (my $forward_location = shift @{$self->{'forward'}})) {
@@ -528,10 +562,13 @@ sub go_forward {
                      history_changed => 1);
   }
 }
+
+# not documented ...
 sub can_go_back {
   my ($self) = @_;
   return @{$self->{'history'}} > 0;
 }
+
 sub go_back {
   my ($self) = @_;
   if (defined (my $back_location = pop @{$self->{'history'}})) {
@@ -647,7 +684,6 @@ sub rich_text_printing {
   return $printing;
 }
 
-
 1;
 __END__
 
@@ -677,8 +713,8 @@ C<Wx::Perl::PodBrowser> is a subclass of C<Wx::RichTextCtrl>.
 
 =head1 DESCRIPTION
 
-This is a C<Wx::RichTextCtrl> displaying formatted POD documents, either
-from F<.pod> or F<.pm> files or parsed from a string or file handle.
+This is a C<Wx::RichTextCtrl> displaying formatted POD documents either from
+F<.pod> or F<.pm> files or parsed from a string or file handle.
 
 See L<Wx::Perl::PodBrowser> for a whole browser window.
 
@@ -688,7 +724,7 @@ The initial widget C<SetSize()> is a sensible size for POD, currently about
 80 columns by 30 lines of the default font.  A parent widget can make it
 bigger or smaller as desired.
 
-The POD to text conversion tries to use the RichText features.
+The POD to text conversion tries to use RichText features.
 
 =over
 
@@ -699,14 +735,14 @@ nicely within C<=over> etc.
 
 =item *
 
-C<=item> bullet points use the RichText bullets paragraphs, and numbered
-C<=item> the numbered paragraphs likewise.  Circa Wx 2.8.12 big numbers seem
-to display with the text overlapping, but it's presumed that's a Wx matter,
-and for small numbers it's fine anyway.
+C<=item> bullet points use the RichText bullet paragraphs, and numbered
+C<=item> use numbered paragraphs likewise.  In Wx circa 2.8.12 big numbers
+seem to display with the text overlapping, but that would be a Wx matter,
+and for small numbers it's fine.
 
 =item *
 
-Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and with
+Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and
 C<wxRichTextLineBreakChar> for each newline.  Wraparound is avoided by a
 large negative right indent.  Alas there's no scroll bar or visual
 indication of more text off to the right, but avoiding wraparound helps
@@ -715,24 +751,24 @@ tables and ascii art.
 =item *
 
 C<< LE<lt>E<gt> >> links to URLs are underlined and buttonized with the
-"URL" style.  C<< LE<lt>E<gt> >> links to POD similarly, but using a
+"URL" style.  C<< LE<lt>E<gt> >> links to POD similarly but using a
 C<pod://> pseudo-URL.  Is a C<pod:> URL a good idea?  It won't be usable by
 anything else, but the attribute is a handy place to hold the link target.
 
-The current code has an C<EVT_TEXT_URL()> handler following to target POD,
-or C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it
+The current code has an C<EVT_TEXT_URL()> handler following to target POD
+and C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it
 might be better to leave that to the browser parent, if some applications
 wanted to display only a single POD.
 
 =item *
 
 C<< SE<lt>E<gt> >> non-breaking text is done with latin-1 0xA0 non-breaking
-spaces which RichText obeys when word wrapping.
+spaces.  RichText obeys them when word wrapping.
 
 =back
 
-The display is reckoned as text so C<=begin text> sections from the POD are
-included in the display.  Other C<=begin> types are ignored.
+The display is reckoned as text so POD C<=begin text> sections are included
+in the display.  Other C<=begin> types are ignored.
 
 Reading a large POD file is slow.  The work is done piece-wise from the
 event loop to keep the rest of the application running, but expect
@@ -781,9 +817,14 @@ C<section> can be an C<=head> heading or an C<=item> text.  The first word
 from an C<=item> works too, which is common for the POD formatters and helps
 cross-references to L<perlfunc> and similar.
 
-=item C<< @strings = $podtext->reload () >>
+=item C<< $podtext->reload () >>
 
 Re-read the current C<module> or C<filename> source.
+
+=item C<< $bool = $podtext->can_reload () >>
+
+Return true if the current POD is from a C<module> or C<filename> source and
+therefore suitable for a C<reload()>.
 
 =item C<< @strings = $podtext->get_heading_list () >>
 
@@ -799,8 +840,8 @@ control back to the main loop.
 C<Wx::wxTE_AUTO_URL> is turned on attempting to pick up unlinked URLs, but
 it doesn't seem to have any effect circa Wx 2.8.12 under Gtk.  Is that
 option only for the plain C<Wx::TextCtrl>?  Could search and linkize
-apparent URLs manually, though perhaps it's best left to C<< LE<lt>E<gt> >>
-markup in the source POD anyway.
+apparent URLs manually, though perhaps that's best left to
+C<< LE<lt>E<gt> >> markup in the source POD anyway.
 
 =head1 SEE ALSO
 

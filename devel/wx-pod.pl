@@ -28,6 +28,12 @@ use Devel::Comments;
 my $str;
 
 # {
+#   print "wxRichTextLineBreakChar is ",Wx::wxRichTextLineBreakChar(),"\n";
+#   print "can(wxRichTextLineBreakChar) is ",Wx->can('wxRichTextLineBreakChar'),"\n";
+#   exit 0;
+# }
+
+# {
 #   my $app = Wx::SimpleApp->new;
 #   my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
 #   require Wx::Perl::PodEditor;
@@ -414,6 +420,12 @@ Indent more
 
 Unindented
 
+=head1 & YY jkl jfkls jfkls jfk lsjfkls jfk sdjfkl sdjflksd jflks djfkl sdjflk
+
+Foo.
+
+=head1 E<32>ZZ
+
 =cut
 HERE
 
@@ -426,11 +438,11 @@ HERE
   if (@ARGV) {
     $browser->goto_pod (guess => $ARGV[0]);
   } else {
-     $browser->goto_pod (string => "=pod\n\nabc");
+    # $browser->goto_pod (string => "=pod\n\nabc");
+    $browser->goto_pod (string => $str);
     # $browser->goto_pod (string => $str);
-    # $browser->goto_pod (string => $str);
-    $browser->goto_pod (module => 'Math::PlanePath::PeanoCurve',
-                        section => 'SEE ALSO');
+    # $browser->goto_pod (module => 'Math::PlanePath::PeanoCurve',
+    #                     section => 'SEE ALSO');
     # $browser->goto_pod (module => 'Math::Symbolic');
     # $browser->goto_pod (module => 'FindBin');
     # $browser->goto_pod (module  => 'perlfunc',

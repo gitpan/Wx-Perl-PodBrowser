@@ -26,7 +26,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 3;
+our $VERSION = 4;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -92,17 +92,17 @@ sub new {
     $menu->Append (Wx::wxID_PRINT(),
                    '',
                    Wx::GetTranslation('Print the document.'));
-    EVT_MENU ($self, Wx::wxID_PRINT(), 'print_pod');
+    EVT_MENU ($self, Wx::wxID_PRINT(), 'popup_print');
 
     $menu->Append (Wx::wxID_PREVIEW(),
                    '',
                    Wx::GetTranslation('Preview document print.'));
-    EVT_MENU ($self, Wx::wxID_PREVIEW(), 'print_preview');
+    EVT_MENU ($self, Wx::wxID_PREVIEW(), 'popup_print_preview');
 
     $menu->Append (Wx::wxID_PRINT_SETUP(),
                    Wx::GetTranslation('Page &Setup'),
                    Wx::GetTranslation('Printer setups.'));
-    EVT_MENU ($self, Wx::wxID_PRINT_SETUP(), 'print_setup');
+    EVT_MENU ($self, Wx::wxID_PRINT_SETUP(), 'popup_print_setup');
 
     $menu->AppendSeparator;
     $menu->Append(Wx::wxID_EXIT(),
@@ -145,11 +145,11 @@ sub new {
     = $self->{'podtext'}
       = Wx::Perl::PodRichText->new ($self);
   $podtext->SetFocus;
-  Wx::Event::EVT_MOTION ($podtext, \&mouse_motion);
-  Wx::Event::EVT_ENTER_WINDOW ($podtext, \&mouse_motion);
-  Wx::Event::EVT_LEAVE_WINDOW ($podtext, \&mouse_leave);
+  Wx::Event::EVT_MOTION ($podtext, \&_do_podtext_mouse_motion);
+  Wx::Event::EVT_ENTER_WINDOW ($podtext, \&_do_podtext_mouse_motion);
+  Wx::Event::EVT_LEAVE_WINDOW ($podtext, \&_do_podtext_mouse_leave);
   Wx::Perl::PodRichText::EVT_PERL_PODRICHTEXT_CHANGED
-      ($self, $podtext, \&OnPodChanged);
+      ($self, $podtext, \&_do_pod_changed);
 
   $self->SetSize ($self->GetBestSize);
   # _update_history_menuitems($self);  # initial insensitive
@@ -289,18 +289,16 @@ sub _update_sections {
       my $heading = $heading_list[$i];
 
       my $label = $heading;
-      if (length $label > 30) {
-        $label = substr($label,0,30) . Wx::GetTranslation('...');
-      }
-      $label =~ s/&/&&/g; # escape, per wxControl::SetLabel()
-      $label = "&$label"; # first letter as mnemonic
+      $label = $self->section_menu_ellipsize($label);
+      $label = _Wx_Perl_ControlBits__escape_ampersands($label);
+      $label =~ s/([[:alnum:]])/&$1/;   # first letter as mnemonic
       ### $label
 
       my $help = Wx::GetTranslation('Go to section:').' '.$heading;
       ### $help
 
       if (my $item = $menu->FindItemByPosition($i)) {
-        # cf SetItemLabel in Wx 2.9 up
+        # cf SetItemLabel() in Wx 2.9 up
         $menu->SetLabel($item->GetId, $label);
         $item->SetHelp ($help);
       } else {
@@ -321,14 +319,32 @@ sub _section_menuitem_activate {
   $self->goto_pod (section => $heading_list[$num]);
 }
 
+# not documented ...
+sub section_menu_ellipsize {
+  my ($self, $str) = @_;
+  if (length($str) > 30) {
+    $str = substr($str,0,30) . Wx::GetTranslation('...');
+  }
+  return $str;
+}
+
+# Maybe ...
+#
+# =item C<< $str = Wx::Perl::ControlBits::escape_ampersands($str) >>
+# 
+# Escape any "&" characters in C<$str> by doubling them to "&&" so as to
+# show them literally in a C<wxControl::SetLabel()> and similar such as
+# C<wxMenuItem::SetItemLabel()>.
+#
+sub _Wx_Perl_ControlBits__escape_ampersands {
+  my ($str) = @_;
+  $str =~ s/&/&&/g;
+  return $str;
+}
+
 sub goto_own_pod {
   my ($self) = @_;
-  $self->goto_pod (module => $self->own_pod_module);
-}
-# not documented yet
-sub own_pod_module {
-  my ($self) = @_;
-  return ref $self;
+  $self->goto_pod (module => ref $self);
 }
 
 sub goto_pod {
@@ -336,7 +352,7 @@ sub goto_pod {
   my $podtext = $self->{'podtext'};
   $podtext->goto_pod (@args);
 }
-sub OnPodChanged {
+sub _do_pod_changed {
   my ($self, $event) = @_;
   my $what = $event->GetWhat;
 
@@ -358,17 +374,17 @@ sub quit {
 
 #------------------------------------------------------------------------------
 
-sub print_pod {
+sub popup_print {
   my ($self) = @_;
   my $printing = $self->rich_text_printing;
   $printing->PrintBuffer ($self->{'podtext'}->GetBuffer);
 }
-sub print_preview {
+sub popup_print_preview {
   my ($self) = @_;
   my $printing = $self->rich_text_printing;
   $printing->PreviewBuffer ($self->{'podtext'}->GetBuffer);
 }
-sub print_setup {
+sub popup_print_setup {
   my ($self) = @_;
   $self->rich_text_printing->PageSetup;
 }
@@ -416,46 +432,52 @@ FITNESS FOR A PARTICULAR PURPOSE.  See the license for more.
   # the same as COPYING in the sources
   my $class = 'Software::License::GPL_3';
   if (eval "require $class") {
+    # believe "holder" doesn't show up anywhere just from $sl->license()
     my $sl = $class->new({ holder => 'Kevin Ryde' });
     $info->SetLicense ($sl->license);
   } else {
-    $info->SetLicense ("GPL version 3 or higher.
-Install $class to see the full text.");
+    $info->SetLicense (sprintf(Wx::GetTranslation("GPL version 3 or higher.
+Install %s to see the full text."),
+                               $class));
   }
   return $info;
 }
 
 #------------------------------------------------------------------------------
 
-sub mouse_motion {
+# $event is a wxMouseEvent, either from EVT_MOTION or EVT_ENTER_WINDOW
+sub _do_podtext_mouse_motion {
   my ($podtext, $event) = @_;
-  #  ### Wx-PodBrowser mouse_motion(): $event->GetX,$event->GetY
-  my $self = $podtext->GetParent;
+  #  ### Wx-PodBrowser _do_podtext_mouse_motion(): $event->GetX,$event->GetY
 
-  my ($result, $x,$y) = $podtext->HitTest($event->GetPosition);
-  # ### $result
+  my $url = _podtext_url_at_wxpoint($podtext,$event->GetPosition);
+
+  my $self = $podtext->GetParent;
+  $self->show_url_message ($url || '');
+  $event->Skip(1); # propagate to other processing
+}
+sub _podtext_url_at_wxpoint {
+  my ($podtext, $wxpoint) = @_;
+
+  my ($result, $x,$y) = $podtext->HitTest($wxpoint);
   # ### $x
   # ### $y
 
-  # $result==0 if x,y found in text ($result!=0 various kinds of outside
-  # Wx::wxRICHTEXT_HITTEST_NONE() etc)
-  my $message = '';
-  if (! $result) {
+  # $result==0 if x,y found in text
+  # $result!=0 various kinds of outside, such as Wx::wxRICHTEXT_HITTEST_NONE()
+  if ($result == 0) {
     if (defined (my $pos = $podtext->XYToPosition($x,$y))) {
       # ### $pos
       if (my $attrs = $podtext->GetRichTextAttrStyle($pos)) {
         # ### url: $attrs->GetURL
-        if (my $url = $attrs->GetURL) {
-          $message = $url;
-        }
+        return $attrs->GetURL;
       }
     }
   }
-
-  $self->show_url_message ($message);
-  $event->Skip(1); # propagate to other processing
+  return undef;
 }
-sub mouse_leave {
+
+sub _do_podtext_mouse_leave {
   my ($podtext, $event) = @_;
   my $self = $podtext->GetParent;
   $self->show_url_message ('');
@@ -499,8 +521,8 @@ C<Wx::Perl::PodBrowser> is a C<Wx::Frame> toplevel window.
 =head1 DESCRIPTION
 
 This is a simple POD documentation browser using C<Wx::Perl::PodRichText>
-(which is a RichTextCtrl).  The menus and any links in the text can be
-followed to other documents.
+(which is a RichTextCtrl).  The links in the text can be followed to other
+documents.
 
     +-------------------------------------------+
     | File  Section  Help                       |
@@ -518,14 +540,14 @@ followed to other documents.
 =head2 Programming
 
 The initial window size follows the 80x30 initial size of the
-c<Wx::Perl::PodRichText> display widget.  Program code or user interaction
-can make the window bigger or smaller later as desired.
+C<Wx::Perl::PodRichText> display widget.  Program code or the user can make
+the window bigger or smaller as desired.
 
 The menubar is available from the usual frame C<< $browser->GetMenuBar() >>
-to make additions or modifications.  The quit menu item is C<Wx::wxID_EXIT>
-and closes the window with the usual frame C<< $browser->Close() >>.  In a
-multi-window program this only closes the PodBrowser window, it doesn't exit
-the whole program.
+to make additions or modifications.  The quit menu item (the usual
+C<Wx::wxID_EXIT>) closes the window with C<< $browser->quit() >> described
+below.  In a multi-window program this only closes the PodBrowser window, it
+doesn't exit the whole program.
 
 See F<examples/wx-podbrowser.pl> in the Wx-Perl-PodBrowser sources for a
 complete sample program running a PodBrowser window standalone.
@@ -557,19 +579,48 @@ with C<< $browser->SetTitle() >> in the usual way.
 
 =item C<< $browser->reload() >>
 
-Re-read the current POD module or file.  This is the File/Reload menu entry.
+Re-read the current POD module or file.  This is the "File/Reload" menu
+entry.
 
 =item C<< $browser->go_back() >>
 
 =item C<< $browser->go_forward() >>
 
 Go back or forward to the next or previous POD module or file.  These are
-the File/Back and File/Forward menu entries.
+the "File/Back" and "File/Forward" menu entries.
 
 =item C<< $browser->goto_own_pod() >>
 
 Go to the POD of the PodBrowser module itself.  This is the "Help/POD
 Browser POD" menu entry.
+
+=item C<< $browser->quit() >>
+
+Close the PodBrowser window.  This is the "File/Quit" menu entry (the usual
+C<wxID_EXIT>).  It closes the window with the usual frame
+C<< $browser->Close() >>.  This closes just the browser window, not the
+whole application.
+
+=back
+
+=head2 Printing
+
+=over 4
+
+=item C<< $browser->popup_print() >>
+
+Open a print dialog for the POD document.  This is the "File/PrintD" menu
+entry (the usual C<wxID_PRINT>).
+
+=item C<< $browser->popup_print_preview() >>
+
+Open a print-preview dialog for the POD document.  This is the "File/Print
+Preview" menu entry (the usual C<wxID_PREVIEW>).
+
+=item C<< $browser->popup_print_setup() >>
+
+Open a page setup dialog for printing.  This is the "File/Page Setup" menu
+entry (the usual C<wxID_PRINT_SETUP>).
 
 =back
 
@@ -579,8 +630,8 @@ Browser POD" menu entry.
 
 =item C<< $browser->popup_about_dialog() >>
 
-Open the "about" dialog for C<$browser>.  This is the Help/About menu entry.
-It displays a C<Wx::AboutBox()> with the
+Open the "about" dialog for C<$browser>.  This is the Help/About menu entry
+(the usual C<wxID_ABOUT>).  It displays a C<Wx::AboutBox()> with the
 C<< $browser->about_dialog_info() >> per below.
 
 =item C<< $info = $browser->about_dialog_info() >>
@@ -600,14 +651,14 @@ L<Wx::Perl::PodEditor> does a similar thing, also in a C<Wx::RichTextCtrl>,
 but geared towards editing the POD.
 
 L<Padre::Wx::Frame::POD> displays POD in a C<Wx::HtmlWindow>, converted to
-HTML with a specialized C<Pod::Simple::XHTML>.
+HTML with a special C<Pod::Simple::XHTML>.
 
 L<CPANPLUS::Shell::Wx::PODReader> also displays POD in a C<Wx::HtmlWindow>,
 converted to HTML with C<perldoc -o html>, which in recent C<perldoc> means
 C<Pod::Simple::Html>.
 
-Browsers in other toolkits include L<Tk::Pod>, L<Prima::HelpViewer>,
-L<Gtk2::Ex::PodViewer>
+POD browsers in other toolkits include L<Tk::Pod>, L<Prima::HelpViewer> and
+L<Gtk2::Ex::PodViewer>.
 
 =head1 HOME PAGE
 

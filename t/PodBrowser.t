@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 3;
+my $want_version = 4;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -74,6 +74,7 @@ my $want_version = 3;
   require Scalar::Util;
   Scalar::Util::weaken ($browser);
   is ($browser, undef, 'garbage collect when weakened');
+  MyTestHelpers::findrefs($browser);
 }
 
 #-----------------------------------------------------------------------------
@@ -89,6 +90,7 @@ my $want_version = 3;
   require Scalar::Util;
   Scalar::Util::weaken ($browser);
   is ($browser, undef, 'garbage collect when weakened, with about dialog');
+  MyTestHelpers::findrefs($browser);
 }
 
 #-----------------------------------------------------------------------------
