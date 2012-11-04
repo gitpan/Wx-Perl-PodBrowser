@@ -31,7 +31,9 @@ Bugs: mailto:user42@zip.com.au
 
 Package: libwx-perl-podbrowser-perl
 Architecture: all
-Depends: libwx-perl, ${perl:Depends}, ${misc:Depends}
-Suggests: libsoftware-license-perl
+Depends: libwx-perl, libpod-simple-perl | perl (>= 5.9.3), ${perl:Depends}, ${misc:Depends}
+Recommends: libsoftware-license-perl
+Suggests: libwx-demo-perl
 Description: POD browser in wxPerl
- A POD browser widget using wxRichTextCtrl.
+ A POD browser widget using wxRichTextCtrl, including a standalone POD
+ browser program.

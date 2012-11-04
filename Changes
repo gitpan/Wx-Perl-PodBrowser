@@ -17,9 +17,16 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 5, October 2012
+    - PodRichText new method get_section_position(),
+      fix docs new($parent,$id) parameters
+    - new Wx::DemoModules::WxPerlPodBrowser
+    - new wx-perl-podbrowser program
+
 Version 4, October 2012
     - PodBrowser new methods popup_print(), popup_print_preview(),
       popup_print_setup(), quit()
+    - PodRichText new method can_reload()
 
 Version 3, September 2012
     - PodBrowser fix goto_own_pod() which is the Help/Pod Browser menu

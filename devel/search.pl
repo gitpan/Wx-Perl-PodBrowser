@@ -17,39 +17,141 @@
 # You should have received a copy of the GNU General Public License along
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-use 5.004;
+
+# cf wxperl_demo.pl -s wxSearchCtrl
+
+use 5.008;
 use strict;
 use Wx;
-use Wx::RichText;
+use Wx::Perl::PodRichText;
 
 # uncomment this to run the ### lines
 use Devel::Comments;
 
+
 {
   my $app = Wx::SimpleApp->new;
   my $self = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
-  my $search = Wx::SearchCtrl->new ($self,
-                                    Wx::wxID_ANY(),
-                                    '', # initial value
-                                    Wx::wxDefaultPosition(),
-                                    Wx::wxDefaultSize(),
-                                    Wx::wxTE_PROCESS_ENTER());
-  $search->ShowCancelButton(1);
+  ### $self
 
-  Wx::Event::EVT_SEARCHCTRL_SEARCH_BTN( $self, $search, sub {
-                                          my ($self, $event) = @_;
-                                          print "search\n";
-                                        });
-  Wx::Event::EVT_SEARCHCTRL_CANCEL_BTN( $self, $search, sub {
-                                          my ($self, $event) = @_;
-                                          print "cancel\n";
-                                        } );
-  Wx::Event::EVT_TEXT_ENTER( $self, $search, sub {
-                               my ($self, $event) = @_;
-                               print "enter\n";
-                             } );
-  $search->SetFocus;
+  my $linebreak = (eval { Wx::wxRichTextLineBreakChar() }
+                   || chr(29)); # per src/richtext/richtextbuffer.cpp
+
+  my $vertsizer = Wx::BoxSizer->new (Wx::wxVERTICAL());
+
+
+  my $search_panel = Wx::Panel->new ($self);
+  $vertsizer->Add ($search_panel, 0, 0, 0);
+
+  my $search_sizer = Wx::BoxSizer->new (Wx::wxHORIZONTAL());
+  {
+    my $search = Wx::SearchCtrl->new ($search_panel,
+                                      Wx::wxID_ANY(),
+                                      '', # initial value
+                                      Wx::wxDefaultPosition(),
+                                      Wx::wxDefaultSize(),
+                                      Wx::wxTE_PROCESS_ENTER());
+    $search->ShowCancelButton(1);
+    $search->SetValue('PodB');
+
+    Wx::Event::EVT_SEARCHCTRL_SEARCH_BTN
+        ($self, $search, sub {
+           my ($self, $event) = @_;
+           print "search\n";
+           my $podtext = $self->{'podtext'};
+           my ($from, $to) = $podtext->GetSelection;
+           ### $from
+           if ($from == $to) {
+             $from = $to = 0;
+           }
+           my $str = $podtext->GetValue;
+           my $search_str = $search->GetValue;
+
+           my $case_checkbox = $self->{'case_checkbox'};
+           unless ($case_checkbox->GetValue) {
+             $str = lc($str);
+             $search_str = lc($search_str);
+           }
+           # $str =~ s/$linebreak/\n/g;
+           ### $search_str
+           ### $to
+
+           if ((($from = index($str, $search_str, $from+1)) >= 0)
+               || ($self->{'wrap_checkbox'}->GetValue
+                   && ($from = index($str, $search_str)) >= 0)) {
+             ### found ...
+             $to = $from + length($search_str);
+             ### $from
+             ### $to
+             $podtext->SetSelection ($from, $to);
+             $podtext->ShowPosition($from);
+           } else {
+             ### not found ...
+             return;
+           }
+         });
+    Wx::Event::EVT_SEARCHCTRL_CANCEL_BTN ($self, $search, sub {
+                                            my ($self, $event) = @_;
+                                            print "cancel\n";
+                                            $vertsizer->Hide($search_panel);
+                                            $vertsizer->Layout;
+                                          });
+    Wx::Event::EVT_TEXT_ENTER( $self, $search, sub {
+                                 my ($self, $event) = @_;
+                                 print "enter\n";
+                               } );
+    $search->SetFocus;
+    $search_sizer->Add ($search, 1, Wx::wxGROW()|Wx::wxRIGHT(), 15);
+  }
+
+  {
+    my $next_button
+      = Wx::Button->new ($search_panel, Wx::wxID_ANY(),
+                         Wx::GetTranslation('Next'));
+    Wx::Event::EVT_BUTTON ($self, $next_button, sub {});
+    $search_sizer->Add ($next_button, 0, Wx::wxGROW(), 0);
+  }
+  {
+    my $prev_button
+      = Wx::Button->new ($search_panel, Wx::wxID_ANY(),
+                         Wx::GetTranslation('Prev'));
+    Wx::Event::EVT_BUTTON ($self, $prev_button, sub {});
+    $search_sizer->Add ($prev_button, 0, Wx::wxGROW(), 0);
+  }
+  {
+    my $case_checkbox
+      = $self->{'case_checkbox'}
+        = Wx::CheckBox->new ($search_panel, Wx::wxID_ANY(), Wx::GetTranslation('Case'));
+    Wx::Event::EVT_CHECKBOX ($self, $case_checkbox, sub {});
+    $search_sizer->Add ($case_checkbox, 0, Wx::wxGROW(), 0);
+  }
+  {
+    my $wrap_checkbox
+      = $self->{'wrap_checkbox'}
+        = Wx::CheckBox->new ($search_panel, Wx::wxID_ANY(), Wx::GetTranslation('Wrap'));
+    $wrap_checkbox->SetValue(1);
+    Wx::Event::EVT_CHECKBOX ($self, $wrap_checkbox, sub {});
+    $search_sizer->Add ($wrap_checkbox, 0, Wx::wxGROW(), 0);
+  }
+  $search_panel->SetSizerAndFit($search_sizer);
+
+  {
+    # my $podtext = Wx::RichTextCtrl->new ($self);
+    my $podtext
+      = $self->{'podtext'}
+        = Wx::Perl::PodRichText->new ($self);
+    $podtext->goto_pod (module => 'Wx::Perl::PodRichText');
+    $podtext->GetValue;
+    $podtext->_set_size_chars(60,30);
+    $vertsizer->Add ($podtext, 1, Wx::wxGROW(), 0);
+  }
+
+  my $bestsize = $self->GetBestSize;
+  ### best height: $bestsize->GetHeight
+  $self->SetSizerAndFit($vertsizer);
+  $self->SetSize ($bestsize);
   $self->Show;
+
   $app->MainLoop;
   exit 0;
 }

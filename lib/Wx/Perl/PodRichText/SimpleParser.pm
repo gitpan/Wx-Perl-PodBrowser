@@ -21,7 +21,7 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 4;
+our $VERSION = 5;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -336,7 +336,7 @@ L<Wx::Perl::PodEditor::PodParser>
 
 =head1 HOME PAGE
 
-L<http://user42.tuxfamily.org/math-image/index.html>
+L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 

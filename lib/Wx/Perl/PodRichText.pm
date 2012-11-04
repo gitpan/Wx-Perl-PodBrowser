@@ -24,11 +24,12 @@ use 5.008;
 use strict;
 use warnings;
 use Carp;
+use List::Util 'max';
 use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 4;
+our $VERSION = 5;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -53,7 +54,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 4;
+  our $VERSION = 5;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -143,7 +144,7 @@ sub new {
   $self->{'forward'} = [];
   $self->{'location'} = undef;
 
-  _Wx_Perl_RichTextBits__set_size_chars($self, 80, 30);
+  _set_size_chars($self, 80, 30);
   return $self;
 }
 
@@ -156,94 +157,8 @@ sub DESTROY {
 
 
 #------------------------------------------------------------------------------
-
-# Maybe ...
-#
-# =item C<$height = Wx::Perl::RichTextBits::set_size_chars($richtextctrl, $width,$height)>
-#
-# Return the size of a C<wxRichTextCtrl> as width and height in characters
-# of the default font.
-
-sub _Wx_Perl_RichTextBits__set_size_chars {
-  my ($self, $width, $height) = @_;
-  my $attrs = $self->GetBasicStyle;
-  my $font = $attrs->GetFont;
-  my $font_points = $font->GetPointSize;
-  my $font_mm = $font_points * (1/72 * 25.4);
-
-  ### $font_mm
-  ### xpixels: _Wx_Perl_WindowBits__x_mm_to_pixels ($self, $width * $font_mm * .8)
-  ### ypixels: _Wx_Perl_WindowBits__y_mm_to_pixels ($self, $height * $font_mm)
-
-  $self->SetSize (_Wx_Perl_WindowBits__x_mm_to_pixels ($self, $width * $font_mm * .8),
-                  _Wx_Perl_WindowBits__y_mm_to_pixels ($self, $height * $font_mm));
-}
-
-# Maybe ...
-#
-# =item C<$height = Wx::Perl::RichTextBits::get_height_lines($richtextctrl)>
-#
-# Return the height in lines of a C<wxRichTextCtrl>, as reckoned by the
-# default font height.  This might include a fraction of a line, depending
-# the window height and font height.
-
-sub _Wx_Perl_RichTextBits__get_height_lines {
-  my ($self) = @_;
-  my $attrs = $self->GetBasicStyle;
-  my $font = $attrs->GetFont;
-  my $font_points = $font->GetPointSize;
-  my $font_mm = $font_points * (1/72 * 25.4);
-  my (undef,$height) = $self->GetSizeWH;
-  ### lines: _Wx_Perl_WindowBits__y_pixels_to_mm($self,$height) / $font_mm
-  return _Wx_Perl_WindowBits__y_pixels_to_mm($self,$height) / $font_mm;
-
-  # ### $height
-  # {  my ($outside, $x,$y) = $self->HitTest(Wx::Point->new(0,0));
-  #    ### top: ($outside, $x,$y)
-  #  }
-  # {
-  #   my ($outside, $x,$y) = $self->HitTest(Wx::Point->new(0,$height));
-  #   ### bot: ($outside, $x,$y)
-  # }
-  # return 30;
-}
-
-# cf Wx::Display->GetFromWindow($window), but wxDisplay doesn't have
-# millimetre sizes?
-sub _Wx_Perl_WindowBits__x_mm_to_pixels {
-  my ($window, $mm) = @_;
-  my $size_pixels = Wx::GetDisplaySize();
-  my $size_mm = Wx::GetDisplaySizeMM();
-  return $mm * $size_pixels->GetWidth / $size_mm->GetWidth;
-}
-sub _Wx_Perl_WindowBits__y_mm_to_pixels {
-  my ($window, $mm) = @_;
-  my $size_pixels = Wx::GetDisplaySize();
-  my $size_mm = Wx::GetDisplaySizeMM();
-  return $mm * $size_pixels->GetHeight / $size_mm->GetHeight;
-}
-sub _Wx_Perl_WindowBits__y_pixels_to_mm {
-  my ($window, $pixels) = @_;
-  my $size_pixels = Wx::GetDisplaySize();
-  my $size_mm = Wx::GetDisplaySizeMM();
-  return $pixels * $size_mm->GetHeight / $size_pixels->GetHeight;
-}
-# sub _Wx_Perl_WindowBits__pixel_size_mm {
-#   my ($window) = @_;
-#   my $size_pixels = Wx::GetDisplaySize();
-#   my $size_mm = Wx::GetDisplaySizeMM();
-#   return ($size_mm->GetWidth / $size_pixels->GetWidth,
-#           $size_mm->GetHeight / $size_pixels->GetHeight);
-# }
-
-#------------------------------------------------------------------------------
 # sections
 
-# Maybe:
-# =item C<< $charpos = $podtext->get_section_position () >>
-#
-
-# not documented yet
 sub get_section_position {
   my ($self, $section) = @_;
   ### get_section_position(): $section
@@ -285,7 +200,7 @@ sub goto_pod {
              || $guess =~ /^\s*$/) {
       $options{'string'} = $guess;
     } else {
-      $self->show_error_text ("Cannot guess POD input type");
+      $self->show_error_text ("Cannot guess POD input type of: ".$guess);
       return;
     }
   }
@@ -320,10 +235,9 @@ sub goto_pod {
 
   if (defined $options{'string'}) {
     ### string ...
-    # Note: must keep string in its own scalar since IO::String takes a
-    # reference not a copy.
-    require IO::String;
-    $options{'filehandle'} = IO::String->new ($options{'string'});
+    open my $fh, '<', \$options{'string'}
+      or die "Oops, cannot open filehandle on string";
+    $options{'filehandle'} = $fh;
   }
 
   if (defined (my $fh = $options{'filehandle'})) {
@@ -334,9 +248,9 @@ sub goto_pod {
     require Wx::Perl::PodRichText::SimpleParser;
     $self->{'parser'} = Wx::Perl::PodRichText::SimpleParser->new
       (richtext => $self,
-       weaken => 1);
-    $self->{'section'} = delete $options{'section'};
-    $self->{'line'}    = delete $options{'line'};
+       weaken   => 1);
+    $self->{'pending_section'} = delete $options{'section'};
+    $self->{'pending_line'}    = delete $options{'line'};
     $self->{'fh'} = $fh;
     $self->{'busy'} ||= Wx::BusyCursor->new;
     require Time::HiRes;
@@ -382,7 +296,7 @@ sub goto_pod {
     $options{'history_changed'} = 1;
   }
 
-  ### goto_pod done ...
+  ### goto_pod() done ...
   ### location now: $self->{'location'}
   ### history now: $self->{'history'}
   ### point: $self->GetInsertionPoint
@@ -399,7 +313,7 @@ sub goto_pod {
 use constant _PARSE_TIME => .3; # seconds
 use constant _SLEEP_TIME => 50; # milliseconds
 
-# for internal use
+# not documented ...
 sub parse_some {
   my ($self, $nofreeze) = @_;
   ### parse_some() ...
@@ -409,59 +323,44 @@ sub parse_some {
     || return; # if error out with timer left running maybe
 
   my $freezer = $nofreeze || Wx::WindowUpdateLocker->new($self);
+
+  # preserve user position during parse
+  my $old_insertion_pos = $self->GetInsertionPoint;
+
   $self->SetInsertionPoint($self->GetLastPosition); # for WriteText
   my $fh = $self->{'fh'} || return;
   my $t = Time::HiRes::time();
 
   do {
-    my ($lines, $eof) = _read_some_lines ($fh, 20);
+    my $lines = _read_some_lines ($fh, 20*60);
     ### some lines: scalar(@$lines)
     ### $lines
     # FIXME: notice a read error
 
     $parser->parse_lines (@$lines);
 
-    if ($eof) {
+    if (! defined $lines->[-1]) {
       ### EOF ...
       ### heading list: $self->{'heading_list'}
       delete $self->{'parser'};
       delete $self->{'fh'};
-
-      my $section = delete $self->{'section'};
-      ### target section: $section
-      my (undef,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
-      if ($y == 0) {
-        # still at top of document, move to target section
-        $self->goto_pod (section    => $section,
-                         line       => delete $self->{'line'},
-                         no_history => 1);
-      }
       delete $self->{'timer'};
+      $self->SetInsertionPoint($old_insertion_pos);
+      _maybe_goto_pending($self);
       delete $self->{'busy'};
       $self->emit_changed('content');
       return;
     }
+
+    # Loop while within +/-_PARSE_TIME of the initial.
+    # abs() ensures loop stops if time() jumps wildly backwards.
   } until (abs(Time::HiRes::time() - $t) > _PARSE_TIME);
 
-  if (defined $self->{'section'}
-      && defined (my $pos = $self->{'section_positions'}->{$self->{'section'}})) {
-    (undef,my $y) = $self->PositionToXY($self->GetFirstVisiblePosition);
-    if ($y == 0) {
-      # still at top of document, move to target section, but only when
-      # enough text to ensure position will be at the top of the window
-      (undef,$y) = $self->PositionToXY($pos);
-      (undef,my $last_y) = $self->PositionToXY($self->GetLastPosition);
-      if ($last_y - $y
-          > 0.75 * _Wx_Perl_RichTextBits__get_height_lines($self)) {
-        $self->goto_pod (section    => delete $self->{'section'},
-                         no_history => 1);
-      }
-    }
-  }
+  $self->SetInsertionPoint($old_insertion_pos);
+  _maybe_goto_pending($self);
 
   $self->{'timer'} ||= do {
     my $timer = Wx::Timer->new ($self);
-    require Scalar::Util;
     Wx::Event::EVT_TIMER ($self, -1, 'parse_some');
     $timer
   };
@@ -470,17 +369,68 @@ sub parse_some {
   }
 }
 
+# Return an arrayref of lines, with last one undef at EOF.
 sub _read_some_lines {
-  my ($fh, $count) = @_;
+  my ($fh, $maxchars) = @_;
   my @lines;
-  while (@lines < $count) {
+  my $gotchars = 0;
+  for (;;) {
     my $line = readline($fh);
     push @lines, $line;  # final undef for Pod::Simple
     if (! defined $line) {
-      return (\@lines, 1);  # end of file
+      ### end of file ...
+      last;
+    }
+    $gotchars += length($line);
+    if ($gotchars >= $maxchars) {
+      last;
     }
   }
-  return (\@lines, 0);
+  return \@lines;
+}
+
+sub _maybe_goto_pending {
+  my ($self) = @_;
+
+  if (! defined $self->{'pending_section'} && ! defined $self->{'pending_line'}) {
+    return;
+  }
+
+  if ($self->{'parser'}) {
+    my $target_line = $self->{'pending_line'};
+
+    if (defined (my $section = $self->{'pending_section'})) {
+      if (defined (my $pos = $self->get_section_position($section))) {
+        my $section_line = _position_to_line($self,$pos);
+        $target_line = max($section_line || 0,
+                           $target_line || 0);
+      } else {
+        ### pending section not yet reached ...
+        return;
+      }
+    }
+
+    # don't move until there's enough text to ensure position will be at the
+    # top of the window
+    my $lines_after = _count_lines($self) - $target_line;
+    if ($lines_after < 0
+        || $lines_after < 0.75 * _get_height_lines($self)) {
+      ### pending line not yet reached ...
+      return;
+    }
+  }
+
+  my $section = delete $self->{'pending_section'};
+  my $line    = delete $self->{'pending_line'};
+
+  if (! _top_is_visible($self)) {
+    # not at top of document, don't move from where the user has scrolled
+    return;
+  }
+
+  $self->goto_pod (section    => $section,
+                   line       => $line,
+                   no_history => 1);
 }
 
 # for internal use
@@ -684,6 +634,116 @@ sub rich_text_printing {
   return $printing;
 }
 
+#------------------------------------------------------------------------------
+# Generic
+
+# Maybe ...
+#
+# =item C<$height = Wx::Perl::RichTextBits::set_size_chars($richtextctrl, $width,$height)>
+#
+# Return the size of a C<wxRichTextCtrl> as width and height in characters
+# of the default font.
+
+sub _set_size_chars {
+  my ($self, $width, $height) = @_;
+  ### _set_size_chars(): "$width,$height"
+
+  my $attrs = $self->GetBasicStyle;
+  my $font = $attrs->GetFont;
+  my $font_points = $font->GetPointSize;
+  my $font_mm = $font_points * (1/72 * 25.4);
+
+  ### $font_mm
+  ### xpixels: _x_mm_to_pixels ($self, $width * $font_mm * .8)
+  ### ypixels: _y_mm_to_pixels ($self, $height * $font_mm)
+
+  $self->SetSize (_x_mm_to_pixels ($self, $width * $font_mm * .8),
+                  _y_mm_to_pixels ($self, $height * $font_mm));
+}
+
+# Maybe ...
+#
+# =item C<$height = Wx::Perl::RichTextBits::get_height_lines($richtextctrl)>
+#
+# Return the height in lines of a C<wxRichTextCtrl>, as reckoned by the
+# default font height.  This might include a fraction of a line, depending
+# the window height and font height.
+
+sub _get_height_lines {
+  my ($self) = @_;
+  my $attrs = $self->GetBasicStyle;
+  my $font = $attrs->GetFont;
+  my $font_points = $font->GetPointSize;
+  my $font_mm = $font_points * (1/72 * 25.4);
+  my (undef,$height) = $self->GetSizeWH;
+  ### lines: _y_pixels_to_mm($self,$height) / $font_mm
+  return _y_pixels_to_mm($self,$height) / $font_mm;
+
+  # ### $height
+  # {  my ($outside, $x,$y) = $self->HitTest(Wx::Point->new(0,0));
+  #    ### top: ($outside, $x,$y)
+  #  }
+  # {
+  #   my ($outside, $x,$y) = $self->HitTest(Wx::Point->new(0,$height));
+  #   ### bot: ($outside, $x,$y)
+  # }
+  # return 30;
+}
+
+# cf Wx::Display->GetFromWindow($window), but wxDisplay doesn't have
+# millimetre sizes?
+sub _x_mm_to_pixels {
+  my ($window, $mm) = @_;
+  my $size_pixels = Wx::GetDisplaySize();
+  my $size_mm = Wx::GetDisplaySizeMM();
+  return $mm * $size_pixels->GetWidth / $size_mm->GetWidth;
+}
+sub _y_mm_to_pixels {
+  my ($window, $mm) = @_;
+  my $size_pixels = Wx::GetDisplaySize();
+  my $size_mm = Wx::GetDisplaySizeMM();
+  return $mm * $size_pixels->GetHeight / $size_mm->GetHeight;
+}
+sub _y_pixels_to_mm {
+  my ($window, $pixels) = @_;
+  my $size_pixels = Wx::GetDisplaySize();
+  my $size_mm = Wx::GetDisplaySizeMM();
+  return $pixels * $size_mm->GetHeight / $size_pixels->GetHeight;
+}
+# sub _pixel_size_mm {
+#   my ($window) = @_;
+#   my $size_pixels = Wx::GetDisplaySize();
+#   my $size_mm = Wx::GetDisplaySizeMM();
+#   return ($size_mm->GetWidth / $size_pixels->GetWidth,
+#           $size_mm->GetHeight / $size_pixels->GetHeight);
+# }
+
+# =item C<$bool = Wx::Perl::RichTextBits::top_is_visible($richtext)>
+#
+# Return true if the first line of C<$richtext> is visible in its window.
+#
+# =item C<$count = Wx::Perl::RichTextBits::count_lines($richtext)>
+#
+# =item C<$linenum = Wx::Perl::TextCtrlBits::position_to_line($richtext,$pos)>
+#
+# Return the line number containing character position C<$pos>, or C<undef>
+# if C<$pos> is past the end of the buffer.  This is simply the Y value from
+# C<$richtext-E<gt>PositionToXY($pos)>.
+#
+sub _top_is_visible {
+  my ($richtext) = @_;
+  return _position_to_line($richtext, $richtext->GetFirstVisiblePosition) == 0;
+}
+sub _count_lines {
+  my ($richtext) = @_;
+  return _position_to_line($richtext, $richtext->GetLastPosition);
+}
+sub _position_to_line {
+  my ($richtext, $pos) = @_;
+  (undef, my $y) = $richtext->PositionToXY($pos);
+  return $y;
+}
+
 1;
 __END__
 
@@ -778,11 +838,12 @@ noticeable lag.
 
 =over
 
-=item C<< $podtext = Wx::Perl::PodRichText->new() >>
+=item C<< $podtext = Wx::Perl::PodRichText->new($parent) >>
 
-=item C<< $podtext = Wx::Perl::PodRichText->new($id,$parent) >>
+=item C<< $podtext = Wx::Perl::PodRichText->new($parent,$id) >>
 
-Create and return a new PodRichText widget.
+Create and return a new PodRichText widget in C<$parent>.  If C<$id> is not
+given then C<wxID_ANY> is used to let wxWidgets choose an ID number.
 
 =item C<< $podtext->goto_pod (key => value, ...) >>
 
@@ -826,12 +887,25 @@ Re-read the current C<module> or C<filename> source.
 Return true if the current POD is from a C<module> or C<filename> source and
 therefore suitable for a C<reload()>.
 
+=back
+
+=head2 Content Methods
+
+POD is parsed progressively under a timer and the following methods give the
+part parsed so far.
+
+=over
+
 =item C<< @strings = $podtext->get_heading_list () >>
 
 Return a list of the C<=head> headings in the displayed document.
 
-The heading list grows as the parse progresses, ie. when the parse yields
-control back to the main loop.
+=item C<< $charpos = $podtext->get_section_position ($section) >>
+
+Return the character position of C<$section>, starting from 0 as per
+C<SetInsertionPoint()> etc.  C<$section> is a heading or item as described
+above for C<section> of C<goto_pod()>.  If there is no C<$section> then
+return C<undef>.
 
 =back
 
@@ -843,6 +917,11 @@ option only for the plain C<Wx::TextCtrl>?  Could search and linkize
 apparent URLs manually, though perhaps that's best left to
 C<< LE<lt>E<gt> >> markup in the source POD anyway.
 
+As of wxWidgets circa 2.8.12 if C<new()> called without a C<$parent> gets a
+segfault.  This is the same as C<< Wx::RichTextCtrl->new() >> called without
+a parent.  Is it good enough to let C<< Wx::RichTextCtrl->new() >> do any
+necessary C<undef> etc argument checking?
+
 =head1 SEE ALSO
 
 L<Wx>,
@@ -851,7 +930,7 @@ L<Pod::Find>
 
 =head1 HOME PAGE
 
-L<http://user42.tuxfamily.org/math-image/index.html>
+L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 

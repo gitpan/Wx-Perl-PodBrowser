@@ -24,14 +24,15 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile
   (NAME         => 'Wx-Perl-PodBrowser',
-   ABSTRACT     => 'POD browser in Wx.',
+   ABSTRACT     => 'POD browser in Wx using wxRichTextCtrl.',
    VERSION_FROM => 'lib/Wx/Perl/PodBrowser.pm',
    AUTHOR       => 'Kevin Ryde <user42@zip.com.au>',
    LICENSE      => 'gpl',
    SIGN         => 1,
    MIN_PERL_VERSION => '5.008',
-
+   EXE_FILES    => [ 'wx-perl-podbrowser' ],
    PREREQ_PM    => {
+                    'Pod::Simple' => 0, # included in with perl 5.10 too
                     'Wx' => 0,
                     'Wx::RichText' => 0,
                    },
@@ -39,6 +40,9 @@ WriteMakefile
    { resources =>
      { homepage => 'http://user42.tuxfamily.org/wx-perl-podbrowser/index.html',
        license  => 'http://www.gnu.org/licenses/gpl.html',
+     },
+     recommends =>
+     { 'Software::License::GPL_3' => 0,
      },
      no_index => { directory=>['devel'] },
 
@@ -48,7 +52,15 @@ WriteMakefile
       { description => 'All the optional things Wx-Perl-PodBrowser can use.',
         requires => {
                      'Software::License::GPL_3' => 0,
+                     'Wx::Demo' => 0,
                     },
+      },
+      maximum_tests =>
+      { description => 'Have "make test" do as much as possible.',
+        prereqs =>
+        { test => { 'Test::Weaken' => 3, # version 3 for "contents"
+                  },
+        }
       },
      },
    },

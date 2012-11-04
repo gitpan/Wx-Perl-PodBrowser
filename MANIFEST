@@ -8,12 +8,15 @@ debian/rules
 debian/source/format
 debian/watch
 devel/cpanshell-podreader.pl
+devel/lib/Wx/DemoModules/WxPerlPodRichText.pm
 devel/menu-remove.pl
+devel/misc.pl
 devel/PodParser.pm
 devel/screenshot.pl
 devel/search.pl
 devel/wx-pod.pl
-examples/wx-podbrowser.pl
+examples/podbrowser.pl
+lib/Wx/DemoModules/WxPerlPodBrowser.pm
 lib/Wx/Perl/PodBrowser.pm
 lib/Wx/Perl/PodRichText.pm
 lib/Wx/Perl/PodRichText/SimpleParser.pm
@@ -26,6 +29,7 @@ t/PodBrowser-weaken.t
 t/PodBrowser.t
 t/PodRichText-weaken.t
 t/PodRichText.t
+wx-perl-podbrowser
 xt/0-examples-xrefs.t
 xt/0-file-is-part-of.t
 xt/0-META-read.t

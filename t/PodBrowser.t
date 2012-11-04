@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 4;
+my $want_version = 5;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');

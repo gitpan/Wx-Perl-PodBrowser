@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-use 5.004;
+use 5.008;
 use strict;
 use Wx;
 use Wx::RichText;
@@ -27,23 +27,6 @@ use Devel::Comments;
 
 my $str;
 
-# {
-#   print "wxRichTextLineBreakChar is ",Wx::wxRichTextLineBreakChar(),"\n";
-#   print "can(wxRichTextLineBreakChar) is ",Wx->can('wxRichTextLineBreakChar'),"\n";
-#   exit 0;
-# }
-
-# {
-#   my $app = Wx::SimpleApp->new;
-#   my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
-#   require Wx::Perl::PodEditor;
-#   my $editor = Wx::Perl::PodEditor->create( $frame, [500,220] );
-#   $editor->set_pod ();
-#   $frame->Show;
-#   $app->MainLoop;
-#   exit 0;
-# }
-#
 # {
 #   my $app = Wx::SimpleApp->new;
 #   my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
@@ -211,6 +194,8 @@ Verbatim fjsdk fksdj fjks fjksd fjksd.  Fjs dfjks djfk sdjkf sdkf sdf
 C<code+-------+> C<bold> I<italic> F<file>
 
 link L<Math::Symbolic> F<filename>
+
+link L<perlfunc/bind>
 
 plain L<http://localhost/index.html>
 disp L<display part|http://localhost/index.html>

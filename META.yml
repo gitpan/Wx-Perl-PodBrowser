@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               Wx-Perl-PodBrowser
-version:            4
-abstract:           POD browser in Wx.
+version:            5
+abstract:           POD browser in Wx using wxRichTextCtrl.
 author:
     - Kevin Ryde <user42@zip.com.au>
 license:            gpl
@@ -12,6 +12,7 @@ build_requires:
     ExtUtils::MakeMaker:  0
 requires:
     perl:          5.008
+    Pod::Simple:   0
     Wx:            0
     Wx::RichText:  0
 resources:
@@ -31,3 +32,11 @@ optional_features:
         description:  All the optional things Wx-Perl-PodBrowser can use.
         requires:
             Software::License::GPL_3:  0
+            Wx::Demo:             0
+    maximum_tests:
+        description:  Have "make test" do as much as possible.
+        prereqs:
+            test:
+                Test::Weaken:  3
+recommends:
+    Software::License::GPL_3:  0

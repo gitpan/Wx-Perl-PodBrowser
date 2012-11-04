@@ -19,14 +19,14 @@
 
 
 
-    # require Wx::Perl::PodRichText::PodParser;
-    # my $parser = Wx::Perl::PodRichText::PodParser->new
-    #   (richtext => $self);
-    # $parser->parse_from_filehandle ($fh);
-    # if ($options{'close_fh'}) {
-    #   close $fh
-    #     or $self->WriteText ("\n\n\nError closing filehandle: $!");
-    # }
+# require Wx::Perl::PodRichText::PodParser;
+# my $parser = Wx::Perl::PodRichText::PodParser->new
+#   (richtext => $self);
+# $parser->parse_from_filehandle ($fh);
+# if ($options{'close_fh'}) {
+#   close $fh
+#     or $self->WriteText ("\n\n\nError closing filehandle: $!");
+# }
 
 
 
@@ -39,7 +39,7 @@ use Carp;
 use Pod::Escapes;
 use Pod::ParseLink;
 use base 'Pod::Parser';
-our $VERSION = 4;
+our $VERSION = 5;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -53,8 +53,8 @@ our $VERSION = 4;
 #
 # sub parse_from_string {
 #   my ($self, $str) = @_;
-#   require IO::String;
-#   my $fh = IO::String->new ($str);
+#   open my $fh, '<', \$str
+#     or die "Oops, cannot open filehandle on string";
 #   $self->parse_from_filehandle ($fh);
 # }
 

@@ -17,47 +17,24 @@
 # You should have received a copy of the GNU General Public License along
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# Usage: wx-podbrowser.pl modulename_or_filename
-#                         --file=filename
-#                         --module=modulename
-#                         --stdin
+
+# Usage: podbrowser.pl modulename_or_filename
+#
+# This is a minimal program to open a Wx::Perl::PodBrowser window.
+# See the wx-perl-podbrowser program for more options etc.
+#
 
 use 5.008;
 use strict;
 use warnings;
-use Getopt::Long;
 use Wx;
 use Wx::Perl::PodBrowser;
 
 my $app = Wx::SimpleApp->new;
-$app->SetAppName(Wx::gettext('POD Browser'));
 
 my $browser = Wx::Perl::PodBrowser->new;
 $browser->Show;
-
-my @goto_pod;
-Getopt::Long::Configure ('no_ignore_case');
-Getopt::Long::Configure ('pass_through');
-Getopt::Long::GetOptions
-  ('module=s' => sub {
-     my ($optname, $value) = @_;
-     @goto_pod = (module => $value);
-   },
-   'file=s' => sub {
-     my ($optname, $value) = @_;
-     @goto_pod = (filename => $value);
-   },
-   'stdin' => sub {
-     my ($optname, $value) = @_;
-     @goto_pod = (filehandle => \*STDIN);
-   },
-  )
-  or return 1;
-
-if (@ARGV) {
-  @goto_pod = (guess => shift @ARGV);
-}
-$browser->goto_pod (@goto_pod);
+$browser->goto_pod (guess => $ARGV[0]);
 
 $app->MainLoop;
 exit 0;

@@ -26,7 +26,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 4;
+our $VERSION = 5;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -38,10 +38,8 @@ sub new {
   if (! defined $title) { $title = Wx::GetTranslation('POD Browser'); }
 
   my $self = $class->SUPER::new ($parent, $id, $title, @rest);
-  $self->{'url_message'} = '';
-
-  # load an icon and set it as frame icon
   $self->SetIcon (Wx::GetWxPerlIcon());
+  $self->{'url_message'} = '';
 
   my $menubar = Wx::MenuBar->new;
   $self->SetMenuBar ($menubar);
@@ -110,6 +108,28 @@ sub new {
                   Wx::GetTranslation('Close this window'));
     EVT_MENU ($self, Wx::wxID_EXIT(), 'quit');
   }
+
+  # {
+  #   my $menu = Wx::Menu->new;
+  #   $menubar->Append ($menu, Wx::GetTranslation('&Edit'));
+  #
+  #   {
+  #     my $item
+  #       = $self->{'edit_copy_menuitem'}
+  #         = $menu->Append (Wx::wxID_COPY(),
+  #                          '',
+  #                          Wx::GetTranslation('Copy selected text to the clipboard.'));
+  #     EVT_MENU ($self, $item, 'edit_copy');
+  #     Wx::Event::EVT_UPDATE_UI ($self, $item, \&_update_can_copy);
+  #   }
+  #   {
+  #     my $item = $menu->Append (Wx::wxID_SELECTALL(),
+  #                               '',
+  #                               Wx::GetTranslation('Select all text for cut and paste.'));
+  #     EVT_MENU ($self, $item, 'edit_select_all');
+  #   }
+  # }
+
   {
     my $menu = $self->{'section_menu'} = Wx::Menu->new;
     my $label = $self->{'section_menu_label'} = Wx::GetTranslation('&Section');
@@ -149,7 +169,7 @@ sub new {
   Wx::Event::EVT_ENTER_WINDOW ($podtext, \&_do_podtext_mouse_motion);
   Wx::Event::EVT_LEAVE_WINDOW ($podtext, \&_do_podtext_mouse_leave);
   Wx::Perl::PodRichText::EVT_PERL_PODRICHTEXT_CHANGED
-      ($self, $podtext, \&_do_pod_changed);
+    ($self, $podtext, \&_do_pod_changed);
 
   $self->SetSize ($self->GetBestSize);
   # _update_history_menuitems($self);  # initial insensitive
@@ -290,7 +310,7 @@ sub _update_sections {
 
       my $label = $heading;
       $label = $self->section_menu_ellipsize($label);
-      $label = _Wx_Perl_ControlBits__escape_ampersands($label);
+      $label = _double_ampersands($label);
       $label =~ s/([[:alnum:]])/&$1/;   # first letter as mnemonic
       ### $label
 
@@ -328,20 +348,6 @@ sub section_menu_ellipsize {
   return $str;
 }
 
-# Maybe ...
-#
-# =item C<< $str = Wx::Perl::ControlBits::escape_ampersands($str) >>
-# 
-# Escape any "&" characters in C<$str> by doubling them to "&&" so as to
-# show them literally in a C<wxControl::SetLabel()> and similar such as
-# C<wxMenuItem::SetItemLabel()>.
-#
-sub _Wx_Perl_ControlBits__escape_ampersands {
-  my ($str) = @_;
-  $str =~ s/&/&&/g;
-  return $str;
-}
-
 sub goto_own_pod {
   my ($self) = @_;
   $self->goto_pod (module => ref $self);
@@ -371,6 +377,21 @@ sub quit {
   ### quit() ...
   $self->Close;
 }
+
+#------------------------------------------------------------------------------
+
+# sub edit_select_all {
+#   my ($self) = @_;
+#   $self->{'podtext'}->SelectAll;
+# }
+# sub edit_copy {
+#   my ($self) = @_;
+#   $self->{'podtext'}->Copy;
+# }
+# sub _update_can_copy {
+#   my ($self) = @_;
+#   $self->{'edit_copy_menuitem'}->Enable($self->{'podtext'}->CanCopy);
+# }
 
 #------------------------------------------------------------------------------
 
@@ -450,21 +471,22 @@ sub _do_podtext_mouse_motion {
   my ($podtext, $event) = @_;
   #  ### Wx-PodBrowser _do_podtext_mouse_motion(): $event->GetX,$event->GetY
 
-  my $url = _podtext_url_at_wxpoint($podtext,$event->GetPosition);
-
+  my $url = _podtext_url_at_point($podtext,$event->GetPosition);
   my $self = $podtext->GetParent;
   $self->show_url_message ($url || '');
   $event->Skip(1); # propagate to other processing
 }
-sub _podtext_url_at_wxpoint {
-  my ($podtext, $wxpoint) = @_;
 
-  my ($result, $x,$y) = $podtext->HitTest($wxpoint);
+# $point is a Wx::Point
+sub _podtext_url_at_point {
+  my ($podtext, $point) = @_;
+
+  my ($result, $x,$y) = $podtext->HitTest($point);
   # ### $x
   # ### $y
-
   # $result==0 if x,y found in text
   # $result!=0 various kinds of outside, such as Wx::wxRICHTEXT_HITTEST_NONE()
+
   if ($result == 0) {
     if (defined (my $pos = $podtext->XYToPosition($x,$y))) {
       # ### $pos
@@ -489,6 +511,21 @@ sub show_url_message {
     $self->{'url_message'} = $message;
     $self->SetStatusText ($message);
   }
+}
+
+#------------------------------------------------------------------------------
+# Maybe ...
+#
+# =item C<< $str = Wx::Perl::ControlBits::double_ampersands($str) >>
+#
+# Double any "&" characters in C<$str> "&&" so as to show them literally in
+# a C<Wx::Control> C<SetLabel()> and similar labels (such as
+# C<Wx::MenuItem> C<SetItemLabel()>).
+#
+sub _double_ampersands {
+  my ($str) = @_;
+  $str =~ s/&/&&/g;
+  return $str;
 }
 
 1;
@@ -544,13 +581,14 @@ C<Wx::Perl::PodRichText> display widget.  Program code or the user can make
 the window bigger or smaller as desired.
 
 The menubar is available from the usual frame C<< $browser->GetMenuBar() >>
-to make additions or modifications.  The quit menu item (the usual
-C<Wx::wxID_EXIT>) closes the window with C<< $browser->quit() >> described
-below.  In a multi-window program this only closes the PodBrowser window, it
-doesn't exit the whole program.
+to make additions or modifications.  The quit menu item (C<Wx::wxID_EXIT>)
+closes the window with C<< $browser->quit() >> described below.  In a
+multi-window program this only closes the PodBrowser window, it doesn't exit
+the whole program.
 
-See F<examples/wx-podbrowser.pl> in the Wx-Perl-PodBrowser sources for a
-complete sample program running a PodBrowser window standalone.
+See L<wx-perl-podbrowser> for a standalone program running a PodBrowser
+window.  Or see F<examples/podbrowser.pl> in the Wx-Perl-PodBrowser sources
+for a minimal program.
 
 =head1 FUNCTIONS
 
@@ -642,8 +680,8 @@ Return a C<Wx::AboutDialogInfo> object with information about C<$browser>.
 
 =head1 SEE ALSO
 
-L<Wx>,
-L<Wx::Perl::PodEditor>
+L<wx-perl-podbrowser>,
+L<Wx>
 
 =head2 Other Ways to Do It
 
@@ -662,7 +700,7 @@ L<Gtk2::Ex::PodViewer>.
 
 =head1 HOME PAGE
 
-L<http://user42.tuxfamily.org/math-image/index.html>
+L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 
