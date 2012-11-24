@@ -30,7 +30,7 @@ MyTestHelpers::nowarnings();
 eval { require Wx }
   or plan skip_all => "due to Wx display not available -- $@";
 
-plan tests => 9;
+plan tests => 10;
 
 my $app = Wx::SimpleApp->new;
 require Wx::Perl::PodBrowser;
@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 5;
+my $want_version = 6;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -61,6 +61,21 @@ my $want_version = 5;
       "VERSION object check $check_version");
 }
 
+
+#-----------------------------------------------------------------------------
+# Close()
+
+{
+  my $frame = Wx::Frame->new;
+  $frame->Show;
+  $frame->Close;
+  $app->Yield;
+
+  require Scalar::Util;
+  Scalar::Util::weaken ($frame);
+  is ($frame, undef, 'Wx::Frame garbage collect when weakened');
+  MyTestHelpers::findrefs($frame);
+}
 
 #-----------------------------------------------------------------------------
 # Close()

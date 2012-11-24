@@ -39,7 +39,7 @@ use Carp;
 use Pod::Escapes;
 use Pod::ParseLink;
 use base 'Pod::Parser';
-our $VERSION = 5;
+our $VERSION = 6;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;

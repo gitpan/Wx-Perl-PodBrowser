@@ -1,5 +1,5 @@
-libwx-perl-podbrowser-perl (5-1) unstable; urgency=low
+libwx-perl-podbrowser-perl (6-1) unstable; urgency=low
 
   * Packaged version.
 
- -- Kevin Ryde <user42@zip.com.au>  Wed, 31 Oct 2012 17:16:14 +1100
+ -- Kevin Ryde <user42@zip.com.au>  Sun, 25 Nov 2012 05:32:01 +1100

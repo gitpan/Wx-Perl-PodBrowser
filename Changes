@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 6, November 2012
+    - tests diagnostics on frame weakening
+
 Version 5, October 2012
     - PodRichText new method get_section_position(),
       fix docs new($parent,$id) parameters

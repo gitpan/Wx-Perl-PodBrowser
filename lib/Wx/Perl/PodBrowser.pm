@@ -26,7 +26,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 5;
+our $VERSION = 6;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
