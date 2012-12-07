@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 6;
+my $want_version = 7;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -63,22 +63,22 @@ my $want_version = 6;
 
 
 #-----------------------------------------------------------------------------
-# Close()
+# Wx::Frame Destroy()
 
 {
   my $frame = Wx::Frame->new;
   $frame->Show;
-  $frame->Close;
+  $frame->Destroy;
   $app->Yield;
 
   require Scalar::Util;
   Scalar::Util::weaken ($frame);
-  is ($frame, undef, 'Wx::Frame garbage collect when weakened');
+  is ($frame, undef, 'Wx::Frame Destroy() garbage collect when weakened');
   MyTestHelpers::findrefs($frame);
 }
 
 #-----------------------------------------------------------------------------
-# Close()
+# Close() destroys whole widget
 
 {
   my $browser = Wx::Perl::PodBrowser->new;

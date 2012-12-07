@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Wx-Perl-PodBrowser
-version:            6
+version:            7
 abstract:           POD browser in Wx using wxRichTextCtrl.
 author:
     - Kevin Ryde <user42@zip.com.au>

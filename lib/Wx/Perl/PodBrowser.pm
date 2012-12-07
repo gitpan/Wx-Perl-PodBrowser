@@ -16,6 +16,10 @@
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
+# Maybe Wx::Perl::PodBrowser->goto_pod (module => $module)
+# for combined create, Show, goto.
+
+
 package Wx::Perl::PodBrowser;
 use 5.008;
 use strict;
@@ -26,7 +30,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 6;
+our $VERSION = 7;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -40,6 +44,7 @@ sub new {
   my $self = $class->SUPER::new ($parent, $id, $title, @rest);
   $self->SetIcon (Wx::GetWxPerlIcon());
   $self->{'url_message'} = '';
+  Wx::Event::EVT_CLOSE ($self, \&_do_close_event);
 
   my $menubar = Wx::MenuBar->new;
   $self->SetMenuBar ($menubar);
@@ -340,6 +345,7 @@ sub _section_menuitem_activate {
 }
 
 # not documented ...
+# cf Text::Truncate
 sub section_menu_ellipsize {
   my ($self, $str) = @_;
   if (length($str) > 30) {
@@ -376,6 +382,11 @@ sub quit {
   my ($self, $event) = @_;
   ### quit() ...
   $self->Close;
+}
+# wxCloseEvent says to Destroy()
+sub _do_close_event {
+  my ($self, $event) = @_;
+  $self->Destroy;
 }
 
 #------------------------------------------------------------------------------
@@ -636,8 +647,12 @@ Browser POD" menu entry.
 
 Close the PodBrowser window.  This is the "File/Quit" menu entry (the usual
 C<wxID_EXIT>).  It closes the window with the usual frame
-C<< $browser->Close() >>.  This closes just the browser window, not the
-whole application.
+C<< $browser->Close() >>.
+
+The C<EVT_CLOSE()> handler does a C<< $browser->Destroy() >> to destroy the
+browser.  Perhaps there should be an option to only C<Hide()>, so an
+application could keep a single browser window.  Is there a conventional way
+to choose that?
 
 =back
 

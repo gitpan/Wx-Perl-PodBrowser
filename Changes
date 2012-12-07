@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 7, November 2012
+    - Destroy() on EVT_CLOSE
+
 Version 6, November 2012
     - tests diagnostics on frame weakening
 
