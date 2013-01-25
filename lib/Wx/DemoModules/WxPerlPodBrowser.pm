@@ -28,7 +28,7 @@ use base 'Wx::Panel';
 # use Smart::Comments;
 
 
-our $VERSION = 7;
+our $VERSION = 8;
 
 use constant title         => 'WxPerlPodBrowser';
 use constant add_to_tags   => 'managed';

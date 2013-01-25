@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 7;
+my $want_version = 8;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -65,11 +65,20 @@ my $want_version = 7;
 #-----------------------------------------------------------------------------
 # Wx::Frame Destroy()
 
+sub app_mainloop_timer {
+  my $timer = Wx::Timer->new($app);
+  Wx::Event::EVT_TIMER ($app, -1, sub { $app->ExitMainLoop });
+  $timer->Start(1000, # milliseconds
+                Wx::wxTIMER_ONE_SHOT())
+    or die "Oops, cannot start timer";
+  $app->MainLoop;
+}
+
 {
   my $frame = Wx::Frame->new;
   $frame->Show;
   $frame->Destroy;
-  $app->Yield;
+  app_mainloop_timer($app);
 
   require Scalar::Util;
   Scalar::Util::weaken ($frame);
@@ -84,7 +93,7 @@ my $want_version = 7;
   my $browser = Wx::Perl::PodBrowser->new;
   $browser->Show;
   $browser->Close;
-  $app->Yield;
+  app_mainloop_timer($app);
 
   require Scalar::Util;
   Scalar::Util::weaken ($browser);
@@ -100,7 +109,7 @@ my $want_version = 7;
   $browser->Show;
   $browser->popup_about; # check it works enough to open
   $browser->Close;
-  $app->Yield;
+  app_mainloop_timer($app);
 
   require Scalar::Util;
   Scalar::Util::weaken ($browser);

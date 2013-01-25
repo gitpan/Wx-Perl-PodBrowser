@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -63,7 +63,7 @@ xwd -frame >$xwd_filename;
 convert $xwd_filename $output_filename;
 pngtextadd --keyword=Author --text='Kevin Ryde' $output_filename;
 pngtextadd --keyword=Title  --text='Wx-Perl-PodBrowser Screenshot' $output_filename;
-pngtextadd --keyword=Copyright --text='Copyright 2012 Kevin Ryde' $output_filename;
+pngtextadd --keyword=Copyright --text='Copyright 2012, 2013 Kevin Ryde' $output_filename;
 pngtextadd --keyword='Creation Time' --text='$time' $output_filename;
 pngtextadd --keyword=Software --text='$software' $output_filename;
 pngtextadd --keyword=Homepage --text='http://user42.tuxfamily.org/wx-perl-podbrowser/index.html' $output_filename;
@@ -71,7 +71,8 @@ xzgv $output_filename;
 HERE
      $browser->Close;
    });
-$timer->Start(100, Wx::wxTIMER_ONE_SHOT())
+$timer->Start(100, # milliseconds
+              Wx::wxTIMER_ONE_SHOT())
   or die "Oops, cannot start timer";
 Wx::WakeUpIdle();
 

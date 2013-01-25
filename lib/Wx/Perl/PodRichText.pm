@@ -1,4 +1,4 @@
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -29,7 +29,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 7;
+our $VERSION = 8;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -54,7 +54,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 7;
+  our $VERSION = 8;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -364,7 +364,8 @@ sub parse_some {
     Wx::Event::EVT_TIMER ($self, -1, 'parse_some');
     $timer
   };
-  if (! $self->{'timer'}->Start(_SLEEP_TIME, Wx::wxTIMER_ONE_SHOT())) {
+  if (! $self->{'timer'}->Start(_SLEEP_TIME, # milliseconds
+                                Wx::wxTIMER_ONE_SHOT())) {
     $self->show_error_text (Wx::gettext('Oops, cannot start timer'));
   }
 }
@@ -934,7 +935,7 @@ L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 
-Copyright 2012 Kevin Ryde
+Copyright 2012, 2013 Kevin Ryde
 
 Wx-Perl-PodBrowser is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -81,7 +81,8 @@ if (0) {
                         sub {
                           ### timer fires ...
                         });
-  $timer->Start(1000, Wx::wxTIMER_CONTINUOUS());
+  $timer->Start(1000, # milliseconds
+                Wx::wxTIMER_CONTINUOUS());
   undef $timer;
 #  $m2->Destroy;
 

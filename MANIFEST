@@ -8,6 +8,7 @@ debian/rules
 debian/source/format
 debian/watch
 devel/cpanshell-podreader.pl
+devel/index.pl
 devel/lib/Wx/DemoModules/WxPerlPodRichText.pm
 devel/menu-remove.pl
 devel/misc.pl
