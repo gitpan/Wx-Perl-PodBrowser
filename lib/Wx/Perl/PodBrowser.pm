@@ -1,4 +1,4 @@
-# Copyright 2011, 2012 Kevin Ryde
+# Copyright 2011, 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -30,7 +30,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 8;
+our $VERSION = 9;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -304,6 +304,7 @@ sub _update_sections {
     my $menubar = $self->GetMenuBar;
     my $pos = $menubar->FindMenu ($self->{'section_menu_label'});
     if ($pos != Wx::wxNOT_FOUND()) {
+      # top-level "Sections" sensitive if there's any headings
       $menubar->EnableTop ($pos, @heading_list > 0);
     }
   }
@@ -329,7 +330,10 @@ sub _update_sections {
       } else {
         $item = $menu->Append (Wx::wxID_ANY(), $label, $help);
         my $num = $i;
-        EVT_MENU ($self, $item, sub{_section_menuitem_activate($self,$num)});
+        EVT_MENU ($self, $item, sub {
+                    my ($self) = @_;
+                    $self->goto_pod (heading_num => $num);
+                  });
       }
     }
     for ( ; my $item = $menu->FindItemByPosition($i); $i++) {
@@ -338,10 +342,6 @@ sub _update_sections {
   }
 }
 sub _section_menuitem_activate {
-  my ($self, $num) = @_;
-  my $podtext = $self->{'podtext'};
-  my @heading_list = $podtext->get_heading_list;
-  $self->goto_pod (section => $heading_list[$num]);
 }
 
 # not documented ...
@@ -701,7 +701,7 @@ L<Wx>
 =head2 Other Ways to Do It
 
 L<Wx::Perl::PodEditor> does a similar thing, also in a C<Wx::RichTextCtrl>,
-but geared towards editing the POD.
+but designed for editing the POD.
 
 L<Padre::Wx::Frame::POD> displays POD in a C<Wx::HtmlWindow>, converted to
 HTML with a special C<Pod::Simple::XHTML>.
@@ -719,7 +719,7 @@ L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 
-Copyright 2012 Kevin Ryde
+Copyright 2012, 2013 Kevin Ryde
 
 Wx-Perl-PodBrowser is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the

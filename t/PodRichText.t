@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -40,7 +40,7 @@ require Wx::Perl::PodRichText;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 8;
+my $want_version = 9;
 {
   is ($Wx::Perl::PodRichText::VERSION, $want_version,
       'VERSION variable');

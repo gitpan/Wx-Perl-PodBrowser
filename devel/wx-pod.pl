@@ -194,9 +194,13 @@ Verbatim fjsdk fksdj fjks fjksd fjksd.  Fjs dfjks djfk sdjkf sdkf sdf
 
 C<code+-------+> C<bold> I<italic> F<file>
 
-link L<Math::Symbolic> F<filename>
+link L<Math::Symbolic/SEE ALSO> F<filename>
 
 link L<perlfunc/bind>
+
+mucho duplicate heads: L<Padre::Current/NAME>,
+L<Set::IntSpan/Examples>,
+L<XML::RSS::Timing/AUTHOR>
 
 plain L<http://localhost/index.html>
 disp L<display part|http://localhost/index.html>
@@ -411,6 +415,10 @@ Unindented
 Foo.
 
 =head1 E<32>ZZ
+
+=head2 mysection
+
+duplicate mysection
 
 =cut
 HERE

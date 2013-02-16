@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -28,7 +28,7 @@ use base 'Wx::Panel';
 # use Smart::Comments;
 
 
-our $VERSION = 8;
+our $VERSION = 9;
 
 use constant title         => 'WxPerlPodBrowser';
 use constant add_to_tags   => 'managed';
@@ -153,7 +153,7 @@ L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 
-Copyright 2012 Kevin Ryde
+Copyright 2012, 2013 Kevin Ryde
 
 Wx-Perl-PodBrowser is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the

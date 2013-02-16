@@ -16,9 +16,6 @@
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# section_position   items and headings
-
-
 package Wx::Perl::PodRichText;
 use 5.008;
 use strict;
@@ -29,13 +26,13 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 8;
+our $VERSION = 9;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
 
 # uncomment this to run the ### lines
-#use Smart::Comments;
+# use Smart::Comments;
 
 
 #------------------------------------------------------------------------------
@@ -54,7 +51,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 8;
+  our $VERSION = 9;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -177,6 +174,13 @@ sub get_heading_list {
   return @{$self->{'heading_list'} ||= []};
 }
 
+# not documented yet ...
+sub get_heading_num_position {
+  my ($self, $heading_num) = @_;
+  if ($heading_num < 0) { return undef; }
+  return ($self->{'heading_pos_list'} ||= [])->[$heading_num];
+}
+
 #------------------------------------------------------------------------------
 
 sub goto_pod {
@@ -184,6 +188,7 @@ sub goto_pod {
   ### goto_pod(): keys %options
 
   my %location;
+  my $new_parse;
   $self->current_location_line; # before section move etc
 
   if (defined (my $guess = $options{'guess'})) {
@@ -211,12 +216,13 @@ sub goto_pod {
     require Pod::Find;
     my $filename = Pod::Find::pod_where({-inc=>1}, $module);
     ### $filename
-    if (! $filename) {
+    if ($filename) {
+      $options{'filename'} = $filename;
+      $location{'module'} = $module;
+    } else {
       $self->show_error_text ("Module not found: $module");
-      return;
+      %options = ();
     }
-    $options{'filename'} = $filename;
-    $location{'module'} = $module;
   }
 
   my $filename = $options{'filename'};
@@ -249,14 +255,15 @@ sub goto_pod {
     $self->{'parser'} = Wx::Perl::PodRichText::SimpleParser->new
       (richtext => $self,
        weaken   => 1);
-    $self->{'pending_section'} = delete $options{'section'};
-    $self->{'pending_line'}    = delete $options{'line'};
+    $self->{'pending_parameters'}
+      = { section     => delete $options{'section'},
+          heading_num => delete $options{'heading_num'},
+          line        => delete $options{'line'},
+        };
+    ### pending_parameters: $self->{'pending_parameters'}
     $self->{'fh'} = $fh;
     $self->{'busy'} ||= Wx::BusyCursor->new;
-    require Time::HiRes;
-    $self->parse_some (1);
-
-    $options{'content_changed'} = 1;
+    $new_parse = 1;
   }
 
   if (defined (my $line = $options{'line'})) {
@@ -269,9 +276,17 @@ sub goto_pod {
     $self->ShowPosition($self->GetInsertionPoint);
   }
 
-  if (defined (my $section = $options{'section'})) {
-    ### $section
-    if (defined (my $pos = $self->get_section_position($section))) {
+  {
+    my $pos;
+    if (defined (my $heading_num = $options{'heading_num'})) {
+      ### $heading_num
+      $pos = $self->get_heading_num_position($heading_num);
+    }
+    if (defined (my $section = $options{'section'})) {
+      ### $section
+      $pos = $self->get_section_position($section);
+    }
+    if (defined $pos) {
       $self->SetInsertionPoint($pos);
       my (undef,$y) = $self->PositionToXY($pos);
       $location{'line'} = $y;
@@ -279,7 +294,7 @@ sub goto_pod {
       $self->ShowPosition($self->GetLastPosition);
       $self->ShowPosition($self->GetInsertionPoint);
     } else {
-      ### unknown section ...
+      ### no heading or section ...
       # Wx::Bell();
     }
   }
@@ -291,15 +306,21 @@ sub goto_pod {
       if (@$history > 20) {
         splice @$history, 0, -20; # keep last 20
       }
+      ### push history to: $self->{'history'}
     }
     $self->{'location'} = \%location;
     $options{'history_changed'} = 1;
   }
 
-  ### goto_pod() done ...
+  ### goto_pod() nearly finished ...
   ### location now: $self->{'location'}
-  ### history now: $self->{'history'}
   ### point: $self->GetInsertionPoint
+
+  if ($new_parse) {
+    require Time::HiRes;
+    $self->parse_some (1);
+    $options{'content_changed'} = 1;
+  }
 
   if ($options{'content_changed'}) {
     $self->emit_changed('content');
@@ -334,7 +355,7 @@ sub parse_some {
   do {
     my $lines = _read_some_lines ($fh, 20*60);
     ### some lines: scalar(@$lines)
-    ### $lines
+    # ### $lines
     # FIXME: notice a read error
 
     $parser->parse_lines (@$lines);
@@ -393,22 +414,28 @@ sub _read_some_lines {
 sub _maybe_goto_pending {
   my ($self) = @_;
 
-  if (! defined $self->{'pending_section'} && ! defined $self->{'pending_line'}) {
-    return;
-  }
+  my $pending_parameters = $self->{'pending_parameters'}
+    || return;
 
   if ($self->{'parser'}) {
-    my $target_line = $self->{'pending_line'};
+    my $target_line = $pending_parameters->{'line'};
 
-    if (defined (my $section = $self->{'pending_section'})) {
-      if (defined (my $pos = $self->get_section_position($section))) {
-        my $section_line = _position_to_line($self,$pos);
-        $target_line = max($section_line || 0,
-                           $target_line || 0);
-      } else {
-        ### pending section not yet reached ...
-        return;
+    my $pos;
+    if (defined (my $heading_num = $pending_parameters->{'heading_num'})) {
+      if ($heading_num <= $#{$self->{'heading_pos_list'}}) {
+        $pos = $self->{'heading_pos_list'}->[$heading_num];
       }
+    }
+    if (defined (my $section = $pending_parameters->{'section'})) {
+      $pos = $self->get_section_position($section);
+    }
+    if (defined $pos) {
+      my $section_line = _position_to_line($self,$pos);
+      $target_line = max($section_line || 0,
+                         $target_line || 0);
+    } else {
+      ### pending section not yet reached ...
+      return;
     }
 
     # don't move until there's enough text to ensure position will be at the
@@ -421,17 +448,15 @@ sub _maybe_goto_pending {
     }
   }
 
-  my $section = delete $self->{'pending_section'};
-  my $line    = delete $self->{'pending_line'};
+  delete $self->{'pending_parameters'};
 
   if (! _top_is_visible($self)) {
     # not at top of document, don't move from where the user has scrolled
     return;
   }
 
-  $self->goto_pod (section    => $section,
-                   line       => $line,
-                   no_history => 1);
+  $self->goto_pod (%$pending_parameters,
+                   no_history  => 1);
 }
 
 # for internal use
@@ -546,10 +571,12 @@ sub go_back {
 sub current_location_line {
   my ($self) = @_;
   ### current_location_line() ...
-  ### location now: $self->{'location'}
   if ($self->{'location'} && %{$self->{'location'}}) {
     my (undef,$y) = $self->PositionToXY($self->GetFirstVisiblePosition);
     $self->{'location'}->{'line'} = $y;
+    ### location updated to: $self->{'location'}
+  } else {
+    ### no current location to store to ...
   }
 }
 
@@ -757,8 +784,8 @@ Wx::Perl::PodRichText -- POD in a RichTextCtrl
 =head1 SYNOPSIS
 
  use Wx::Perl::PodRichText;
- my $podtext = Wx::Perl::PodRichText->new;
- $podtext->goto_pod (module => 'Foo::Bar');
+ my $podtextwidget = Wx::Perl::PodRichText->new;
+ $podtextwidget->goto_pod (module => 'Foo::Bar');
 
 =head1 CLASS HIERARCHY
 
@@ -774,10 +801,10 @@ C<Wx::Perl::PodBrowser> is a subclass of C<Wx::RichTextCtrl>.
 
 =head1 DESCRIPTION
 
-This is a C<Wx::RichTextCtrl> displaying formatted POD documents either from
+This is a C<Wx::RichTextCtrl> displaying formatted POD documents from
 F<.pod> or F<.pm> files or parsed from a string or file handle.
 
-See L<Wx::Perl::PodBrowser> for a whole browser window.
+See L<Wx::Perl::PodBrowser> for a whole toplevel browser window.
 
 =head2 Details
 
@@ -797,29 +824,33 @@ nicely within C<=over> etc.
 =item *
 
 C<=item> bullet points use the RichText bullet paragraphs, and numbered
-C<=item> use numbered paragraphs likewise.  In Wx circa 2.8.12 big numbers
-seem to display with the text overlapping, but that would be a Wx matter,
-and for small numbers it's fine.
+C<=item> use numbered paragraphs likewise.
+
+In Wx circa 2.8.12 numbered paragraphs with big numbers seem to display with
+the text overlapping the number, but that should be a Wx matter and for
+small numbers it's fine.
 
 =item *
 
 Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and
 C<wxRichTextLineBreakChar> for each newline.  Wraparound is avoided by a
-large negative right indent.  Alas there's no scroll bar or visual
-indication of more text off to the right, but avoiding wraparound helps
-tables and ascii art.
+large negative right indent.
+
+Alas there's no scroll bar or visual indication of more text off to the
+right, but avoiding wraparound helps tables and ascii art.
 
 =item *
 
 C<< LE<lt>E<gt> >> links to URLs are underlined and buttonized with the
 "URL" style.  C<< LE<lt>E<gt> >> links to POD similarly but using a
 C<pod://> pseudo-URL.  Is a C<pod:> URL a good idea?  It won't be usable by
-anything else, but the attribute is a handy place to hold the link target.
+anything else, but the attribute is a handy place to hold the link
+destination.
 
-The current code has an C<EVT_TEXT_URL()> handler following to target POD
-and C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it
-might be better to leave that to the browser parent, if some applications
-wanted to display only a single POD.
+The current code has an C<EVT_TEXT_URL()> handler following to target POD or
+C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it might
+be better to leave that to the browser parent if some applications wanted to
+display only a single POD.
 
 =item *
 
@@ -839,14 +870,14 @@ noticeable lag.
 
 =over
 
-=item C<< $podtext = Wx::Perl::PodRichText->new($parent) >>
+=item C<< $podtextwidget = Wx::Perl::PodRichText->new($parent) >>
 
-=item C<< $podtext = Wx::Perl::PodRichText->new($parent,$id) >>
+=item C<< $podtextwidget = Wx::Perl::PodRichText->new($parent,$id) >>
 
 Create and return a new PodRichText widget in C<$parent>.  If C<$id> is not
-given then C<wxID_ANY> is used to let wxWidgets choose an ID number.
+given then C<wxID_ANY> is used to have wxWidgets choose an ID number.
 
-=item C<< $podtext->goto_pod (key => value, ...) >>
+=item C<< $podtextwidget->goto_pod (key => value, ...) >>
 
 Go to a specified POD module, filename, section etc.  The key/value options
 are
@@ -860,11 +891,11 @@ are
     section  => $string
     line     => $integer     line number
 
-The target POD document is given by C<module>, C<filename>, etc.  C<module>
-is sought with L<Pod::Find> in the usual C<@INC>.  C<string> is POD in a
-string.
+The target POD document is given by C<module> or C<filename>, etc.
+C<module> is sought with L<Pod::Find> in the usual C<@INC> path.  C<string>
+is POD in a string.
 
-    $podtext->goto_pod (module => "perlpodspec");
+    $podtextwidget->goto_pod (module => "perlpodspec");
 
 C<guess> tries a module or filename.  It's intended for command line or
 similar loose input to let the user enter either module or filename.
@@ -873,17 +904,17 @@ Optional C<section> or C<line> is a position within the document.  They can
 be given alone to move in the currently displayed document.
 
     # move within current display
-    $podtext->goto_pod (section => "DESCRIPTION");
+    $podtextwidget->goto_pod (section => "DESCRIPTION");
 
 C<section> can be an C<=head> heading or an C<=item> text.  The first word
 from an C<=item> works too, which is common for the POD formatters and helps
 cross-references to L<perlfunc> and similar.
 
-=item C<< $podtext->reload () >>
+=item C<< $podtextwidget->reload () >>
 
 Re-read the current C<module> or C<filename> source.
 
-=item C<< $bool = $podtext->can_reload () >>
+=item C<< $bool = $podtextwidget->can_reload () >>
 
 Return true if the current POD is from a C<module> or C<filename> source and
 therefore suitable for a C<reload()>.
@@ -897,16 +928,16 @@ part parsed so far.
 
 =over
 
-=item C<< @strings = $podtext->get_heading_list () >>
+=item C<< @strings = $podtextwidget->get_heading_list () >>
 
 Return a list of the C<=head> headings in the displayed document.
 
-=item C<< $charpos = $podtext->get_section_position ($section) >>
+=item C<< $charpos = $podtextwidget->get_section_position ($section) >>
 
-Return the character position of C<$section>, starting from 0 as per
-C<SetInsertionPoint()> etc.  C<$section> is a heading or item as described
-above for C<section> of C<goto_pod()>.  If there is no C<$section> then
-return C<undef>.
+Return the character position of C<$section>.  The position is per
+C<SetInsertionPoint()> etc so 0 is the start of the document.  C<$section>
+is a heading or item as described above for C<section> of C<goto_pod()>.  If
+there is no such C<$section> then return C<undef>.
 
 =back
 
@@ -914,11 +945,11 @@ return C<undef>.
 
 C<Wx::wxTE_AUTO_URL> is turned on attempting to pick up unlinked URLs, but
 it doesn't seem to have any effect circa Wx 2.8.12 under Gtk.  Is that
-option only for the plain C<Wx::TextCtrl>?  Could search and linkize
-apparent URLs manually, though perhaps that's best left to
+option only for the plain C<Wx::TextCtrl>?  Perhaps could search and linkize
+apparent URLs manually, though perhaps links are best left to
 C<< LE<lt>E<gt> >> markup in the source POD anyway.
 
-As of wxWidgets circa 2.8.12 if C<new()> called without a C<$parent> gets a
+As of wxWidgets circa 2.8.12 calling C<new()> without a C<$parent> gets a
 segfault.  This is the same as C<< Wx::RichTextCtrl->new() >> called without
 a parent.  Is it good enough to let C<< Wx::RichTextCtrl->new() >> do any
 necessary C<undef> etc argument checking?

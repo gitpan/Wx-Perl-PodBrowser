@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 9, February 2013
+    - Section menu allow for duplicated heading names
+
 Version 8, January 2013
     - tests try MainLoop for weakening
 

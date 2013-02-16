@@ -1,4 +1,4 @@
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -21,7 +21,7 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 8;
+our $VERSION = 9;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;
@@ -103,6 +103,7 @@ sub _handle_element_start {
                                       $font_mm*10 * .4); # after
     $richtext->{'section_positions'} = {};
     $richtext->{'heading_list'} = [];
+    $richtext->{'heading_pos_list'} = [];
     $richtext->{'index_list'} = [];
 
   } elsif ($element eq 'Para'
@@ -251,11 +252,15 @@ sub set_heading_range {
 
   my $heading = $richtext->GetRange($startpos, $endpos);
   $heading =~ s/\s+$//; # trailing whitespace
-  push @{$richtext->{'heading_list'}}, $heading;
-  $richtext->{'section_positions'}->{$heading} = $startpos;
-  $heading = lc($heading);
-  if (! defined $richtext->{'section_positions'}->{$heading}) {
-    $richtext->{'section_positions'}->{$heading} = $startpos;
+  push @{$richtext->{'heading_list'}},     $heading;
+  push @{$richtext->{'heading_pos_list'}}, $startpos;
+
+  # if duplicate section names then record only the first
+  foreach (1 .. 2) {
+    if (! defined $richtext->{'section_positions'}->{$heading}) {
+      $richtext->{'section_positions'}->{$heading} = $startpos;
+    }
+    $heading = lc($heading);
   }
   $richtext->emit_changed('heading_list');
 }
@@ -340,7 +345,7 @@ L<http://user42.tuxfamily.org/wx-perl-podbrowser/index.html>
 
 =head1 LICENSE
 
-Copyright 2012 Kevin Ryde
+Copyright 2012, 2013 Kevin Ryde
 
 Wx-Perl-PodBrowser is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the
