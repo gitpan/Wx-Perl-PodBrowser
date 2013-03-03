@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 9;
+my $want_version = 10;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -89,6 +89,8 @@ sub app_mainloop_timer {
 #-----------------------------------------------------------------------------
 # Close() destroys whole widget
 
+# FIXME: This might be bad on ms-windows.  Dunno if Close doesn't destroy or
+# if the test is ill-conceived.
 {
   my $browser = Wx::Perl::PodBrowser->new;
   $browser->Show;
@@ -104,7 +106,11 @@ sub app_mainloop_timer {
 #-----------------------------------------------------------------------------
 # popup_about()
 
-{
+SKIP: {
+  unless (Wx::wxGTK()) {
+    skip "skip Wx::AboutBox when not GTK, since not sure AboutBox will be asynchronous except on GTK", 1;
+  }
+
   my $browser = Wx::Perl::PodBrowser->new;
   $browser->Show;
   $browser->popup_about; # check it works enough to open

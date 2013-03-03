@@ -21,7 +21,7 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 9;
+our $VERSION = 10;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;

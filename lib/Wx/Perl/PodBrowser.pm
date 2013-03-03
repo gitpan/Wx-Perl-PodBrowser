@@ -30,7 +30,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 9;
+our $VERSION = 10;
 
 # uncomment this to run the ### lines
 #use Smart::Comments;

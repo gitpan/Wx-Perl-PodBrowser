@@ -28,7 +28,7 @@ use Wx::Perl::PodBrowser;
 # use Smart::Comments;
 
 
-our $VERSION = 9;
+our $VERSION = 10;
 
 my @goto_document;
 my @goto_position;

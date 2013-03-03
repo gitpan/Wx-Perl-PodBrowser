@@ -17,6 +17,10 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 10, March 2013
+    - tests Wx::AboutBox is not asynchronous on mswin, as reported by
+      Alexandr Ciornii RT#83696
+
 Version 9, February 2013
     - Section menu allow for duplicated heading names
 

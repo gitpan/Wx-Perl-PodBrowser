@@ -15,19 +15,19 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 842745cb706f8f2126506f544492f7a80dbe29b3 COPYING
-SHA1 deb4caa23d765c7bce2a9602c424365740435147 Changes
+SHA1 d3e700a4a27f7df781fe7f3a7b926abe3e69b016 Changes
 SHA1 476985f9e3887f2cd54038d24ce2460dc9618bba MANIFEST
 SHA1 b758f740af57256154bbf4e1f8a760a1b9f9dfe1 MANIFEST.SKIP
-SHA1 0c1b4d64e84be899102b325d7da7df4bbb39707c META.yml
+SHA1 073407767664dd0aa3d66962a342b7acb04862d0 META.yml
 SHA1 6381996bb343a6fb7c50dadbe3310ee0390551ea Makefile.PL
-SHA1 e7f50cb01ff1479d9ee17044392100c721906f77 debian/changelog
+SHA1 5adb41d1e5d0a57575b09fa33e4cfbe64b0342d6 debian/changelog
 SHA1 ac3478d69a3c81fa62e60f5c3696165a4e5e6ac4 debian/compat
 SHA1 79e0a290bcb5c6d8d2de29b6d34b33345f73a6c4 debian/control
 SHA1 3d1c5b7422583ef15c173c3db8a88fcd876bd522 debian/copyright
 SHA1 b64b53be6cbc9b135717379be8e209114db372e5 debian/rules
 SHA1 61652cd1568dcf2614df833eba241755eee34e89 debian/source/format
 SHA1 2e7efb3043d6f5f86fc063385727cc99e945bf40 debian/watch
-SHA1 9f6951d909d1d17af855d1fa21548831c88c686e devel/PodParser.pm
+SHA1 78de4758c2f4f68a301f090f79333a96353b3fef devel/PodParser.pm
 SHA1 2b1e63fe364d0b9d6ef4b28d12983a10a6b2bd28 devel/cpanshell-podreader.pl
 SHA1 d14da884ee7f9e9541d5cb30335f18aa36d22d04 devel/index.pl
 SHA1 33b7e1eef12b26e3b1d78dedfcd00da4ef11b638 devel/lib/Wx/DemoModules/WxPerlPodRichText.pm
@@ -37,16 +37,16 @@ SHA1 97ced6e1171dbb9b5783616a042890a52fcdef33 devel/screenshot.pl
 SHA1 77325ebe395933ffe6d0f23264b1b2253c53c788 devel/search.pl
 SHA1 72cb8c95030d15aa38b39392bd0708487f90125f devel/wx-pod.pl
 SHA1 9de5ac7890101291b55becb08b2eb2e9d7e4c90b examples/podbrowser.pl
-SHA1 286ebc85ac7760741de1961b44bd1f0fb236e1af lib/Wx/DemoModules/WxPerlPodBrowser.pm
-SHA1 6b97dce77f3630427292de4fc94d2b7ee6daafcb lib/Wx/Perl/PodBrowser.pm
-SHA1 fd7fe8b07fdc47bd0f496688aed3fe19eeec13c3 lib/Wx/Perl/PodRichText.pm
-SHA1 490e9d0465032ea83b7de29fd3be650ddf2bd1d3 lib/Wx/Perl/PodRichText/SimpleParser.pm
+SHA1 ccb63fdd2167499a97531b34501fbbb5063eb86d lib/Wx/DemoModules/WxPerlPodBrowser.pm
+SHA1 2c5d290b9971949a743d164f216539f57bd48a10 lib/Wx/Perl/PodBrowser.pm
+SHA1 ea05ae8685503ede44fdd9298b002b815f84dc7b lib/Wx/Perl/PodRichText.pm
+SHA1 761e014ee1d1eda59b03194e865b3ef00c63dd8d lib/Wx/Perl/PodRichText/SimpleParser.pm
 SHA1 3855de075da37f5bc4e6a5534b2f00cc14872a98 t/MyTestHelpers.pm
 SHA1 6c4adaeb1ab3f0d0703a632af80055889e258146 t/PodBrowser-weaken.t
-SHA1 7dbea459b40a6f52d9c1d4603bd805481dfce54e t/PodBrowser.t
+SHA1 69c964809e00fb16e81e4d5e6d564ab5e89ab63a t/PodBrowser.t
 SHA1 4c9d7fc2675eeec03f781fceb53b63536fb559c9 t/PodRichText-weaken.t
-SHA1 256826819724d9caa0c3d4a0497570329d680986 t/PodRichText.t
-SHA1 4c818082c7ca2b751365fb663bae14f95f3ce8e0 wx-perl-podbrowser
+SHA1 c4c89d25443daf78b2c32e19516371cbcc39300a t/PodRichText.t
+SHA1 db9aad3172ceffbaf775e029f10437ad12aee8ca wx-perl-podbrowser
 SHA1 811028548aa4b360b5086d1af3150f9dde348aa6 xt/0-META-read.t
 SHA1 c9e7a47e1f397eb5f46d7e4ef21754d9df76e36e xt/0-Test-ConsistentVersion.t
 SHA1 d9e7f38a8dcfdb76c56951e4214be8eeda2e2289 xt/0-Test-DistManifest.t
@@ -69,7 +69,7 @@ SHA1 f90084e1d6f95abb12eea896cd1cc850402d7726 xtools/my-wunused.sh
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iD8DBQFRHsTOLFMCIV9q3ToRAnI5AJ9tOXJDmgaYW3U6iNjmJ+b1407j3wCcCnBx
-Kzw3OgmLVj6SggL/gO+rZW4=
-=5ZFC
+iD8DBQFRM8RRLFMCIV9q3ToRAibbAJ4sQTcbuvLZ5dCEA0dkXTorRh0piACcDcg/
+z/rPkHgL1qxFP5icylkAW2E=
+=cMC6
 -----END PGP SIGNATURE-----
