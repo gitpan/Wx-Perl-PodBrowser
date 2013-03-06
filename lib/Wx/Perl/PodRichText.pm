@@ -26,7 +26,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 10;
+our $VERSION = 11;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -51,7 +51,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 10;
+  our $VERSION = 11;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -77,7 +77,7 @@ sub new {
   if (! defined $id) { $id = Wx::wxID_ANY(); }
   my $self = $class->SUPER::new ($parent,
                                  $id,
-                                 Wx::gettext('Nothing selected'),
+                                 Wx::GetTranslation('Nothing selected'),
                                  Wx::wxDefaultPosition(),
                                  Wx::wxDefaultSize(),
                                  (Wx::wxTE_AUTO_URL()
@@ -107,31 +107,28 @@ sub new {
 
     my $attrs = Wx::RichTextAttr->new;
     $attrs->SetFontFaceName ($font->GetFaceName);
-    $attrs->SetFlags (Wx::wxTEXT_ATTR_FONT_FACE());
     # $attrs->SetTextColour(Wx::wxRED());
 
     my $style = Wx::RichTextCharacterStyleDefinition->new ('code');
     $style->SetStyle($attrs);
-    $style->SetDescription(Wx::gettext('C<> code markup and verbatim paragraphs.'));
+    $style->SetDescription(Wx::GetTranslation('C<> code markup and verbatim paragraphs.'));
     $stylesheet->AddCharacterStyle ($style);
   }
   {
     my $attrs = Wx::RichTextAttr->new;
-    $attrs->SetFontStyle (Wx::wxTEXT_ATTR_FONT_ITALIC());
-    $attrs->SetFlags (Wx::wxTEXT_ATTR_FONT_ITALIC());
+    $attrs->SetFontStyle (Wx::wxITALIC());
 
     my $style = Wx::RichTextCharacterStyleDefinition->new ('file');
     $style->SetStyle($attrs);
-    $style->SetDescription(Wx::gettext('F<> filename markup.'));
+    $style->SetDescription(Wx::GetTranslation('F<> filename markup.'));
     $stylesheet->AddCharacterStyle ($style);
   }
   {
     my $attrs = Wx::RichTextAttr->new;
     $attrs->SetFontUnderlined (1);
-    $attrs->SetFlags (Wx::wxTEXT_ATTR_FONT_UNDERLINE());
 
     my $style = Wx::RichTextCharacterStyleDefinition->new ('link');
-    $style->SetDescription(Wx::gettext('L<> link markup.'));
+    $style->SetDescription(Wx::GetTranslation('L<> link markup.'));
     $style->SetStyle($attrs);
     $stylesheet->AddCharacterStyle ($style);
   }
@@ -387,7 +384,7 @@ sub parse_some {
   };
   if (! $self->{'timer'}->Start(_SLEEP_TIME, # milliseconds
                                 Wx::wxTIMER_ONE_SHOT())) {
-    $self->show_error_text (Wx::gettext('Oops, cannot start timer'));
+    $self->show_error_text (Wx::GetTranslation('Oops, cannot start timer'));
   }
 }
 
@@ -611,7 +608,8 @@ sub OnUrl {
 # not documented yet
 sub goto_link_at_pos {
   my ($self, $pos) = @_;
-  ### get_url_at_pos(): $pos
+  ### goto_link_at_pos(): $pos
+
   my $attrs = $self->GetRichTextAttrStyle($pos);
   if (defined (my $url = $attrs->GetURL)) {
     ### $url

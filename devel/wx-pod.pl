@@ -179,6 +179,18 @@ Foo2 - bar2
 
 =head4 Foo & bar && Quux
 
+=over
+
+=item Item One
+
+=item Item Two
+
+=item Item Three
+
+Paragraph.
+
+=back
+
 X<Index entry>  blah
 Verbatim fjsdk fksdj fjks fjksd fjksd.  Fjs dfjks djfk sdjkf sdkf sdf
 
@@ -192,7 +204,7 @@ Verbatim fjsdk fksdj fjks fjksd fjksd.  Fjs dfjks djfk sdjkf sdkf sdf
     atim
     atim2
 
-C<code+-------+> C<bold> I<italic> F<file>
+C<code+-------+> C<bold> I<italic> F<file> plain.
 
 link L<Math::Symbolic/SEE ALSO> F<filename>
 

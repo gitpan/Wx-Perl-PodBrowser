@@ -21,17 +21,18 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 10;
+our $VERSION = 11;
 
 # uncomment this to run the ### lines
-#use Smart::Comments;
+# use Smart::Comments;
 
 
 sub new {
   my ($class, %options) = @_;
   ### PodRichText-SimpleParser new() ...
 
-  my $self = $class->SUPER::new (%options);
+  my $self = $class->SUPER::new (previous_element_end => '',
+                                 %options);
   $self->{'richtext'} = $options{'richtext'};
   if ($options{'weaken'}) {
     require Scalar::Util;
@@ -51,8 +52,9 @@ sub new {
 #   ### DESTROY done ...
 # }
 
-# wxRichTextLineBreakChar() and ->LineBreak() wrapped in wxPerl 0.9911, use
-# if available
+# $linebreak is the string Wx::wxRichTextLineBreakChar() in wxPerl 0.9911,
+# or an explicit chr() in earlier versions.  (The ->LineBreak() method is
+# wrapped in 0.9911 up too.)
 #
 my $linebreak = (eval { Wx::wxRichTextLineBreakChar() }
                  || chr(29)); # per src/richtext/richtextbuffer.cpp
@@ -122,6 +124,14 @@ sub _handle_element_start {
     $self->{'indent'} += $self->{'indent_step'};
 
   } elsif ($element =~ /^item/) {
+    ### item, previous end was: $self->{'previous_element_end'}
+    # if ($self->{'previous_element_end'} =~ /^item/) {
+    #   my $pos = $richtext->GetInsertionPoint;
+    #   ### change: $richtext->GetRange($pos-1,$pos)
+    #   # $richtext->Remove($pos-1,$pos);
+    #   # $richtext->WriteText($linebreak);
+    #    $richtext->Replace($pos-2,$pos,$linebreak);
+    # }
     $self->{'startpos'} = $richtext->GetInsertionPoint;
     if ($element eq 'item-bullet') {
       $richtext->BeginStandardBullet("standard/circle",
@@ -240,6 +250,7 @@ sub _handle_element_end {
     push @{$richtext->{'index_list'}},
       delete $self->{'X'}, $self->{'startpos'};
   }
+  $self->{'previous_element_end'} = $element;
 }
 
 # not documented

@@ -39,7 +39,7 @@ require Wx::Perl::PodBrowser;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 10;
+my $want_version = 11;
 {
   is ($Wx::Perl::PodBrowser::VERSION, $want_version,
       'VERSION variable');
@@ -87,19 +87,19 @@ sub app_mainloop_timer {
 }
 
 #-----------------------------------------------------------------------------
-# Close() destroys whole widget
+# Destroy() destroys whole widget
 
-# FIXME: This might be bad on ms-windows.  Dunno if Close doesn't destroy or
-# if the test is ill-conceived.
+# FIXME: Close() like this might be bad on ms-windows.  Dunno if Close
+# doesn't destroy or if the test is ill-conceived.
 {
   my $browser = Wx::Perl::PodBrowser->new;
   $browser->Show;
-  $browser->Close;
+  $browser->Destroy;
   app_mainloop_timer($app);
 
   require Scalar::Util;
   Scalar::Util::weaken ($browser);
-  is ($browser, undef, 'garbage collect when weakened');
+  is ($browser, undef, 'garbage collect when Destroy() and weakened');
   MyTestHelpers::findrefs($browser);
 }
 

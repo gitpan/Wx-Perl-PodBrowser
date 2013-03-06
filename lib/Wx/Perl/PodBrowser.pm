@@ -30,10 +30,10 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 10;
+our $VERSION = 11;
 
 # uncomment this to run the ### lines
-#use Smart::Comments;
+# use Smart::Comments;
 
 
 sub new {
@@ -409,6 +409,7 @@ sub _do_close_event {
 sub popup_print {
   my ($self) = @_;
   my $printing = $self->rich_text_printing;
+  ### buffer: $self->{'podtext'}->GetBuffer
   $printing->PrintBuffer ($self->{'podtext'}->GetBuffer);
 }
 sub popup_print_preview {

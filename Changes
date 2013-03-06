@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 11, March 2013
+    - fix F<> was not displaying the intended italics
+
 Version 10, March 2013
     - tests Wx::AboutBox is not asynchronous on mswin, as reported by
       Alexandr Ciornii RT#83696
