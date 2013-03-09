@@ -40,7 +40,7 @@ require Wx::Perl::PodRichText;
 #------------------------------------------------------------------------------
 # VERSION
 
-my $want_version = 11;
+my $want_version = 12;
 {
   is ($Wx::Perl::PodRichText::VERSION, $want_version,
       'VERSION variable');

@@ -30,7 +30,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 11;
+our $VERSION = 12;
 
 # uncomment this to run the ### lines
 # use Smart::Comments;
@@ -543,7 +543,7 @@ sub _double_ampersands {
 1;
 __END__
 
-=for stopwords Ryde PodRichText menubar multi PodBrowser Wx toolkits
+=for stopwords Wx-Perl-PodBrowser Ryde PodRichText menubar multi-window PodBrowser Wx toolkits toplevel
 
 =head1 NAME
 
@@ -569,8 +569,9 @@ C<Wx::Perl::PodBrowser> is a C<Wx::Frame> toplevel window.
 
 =head1 DESCRIPTION
 
-This is a simple POD documentation browser using C<Wx::Perl::PodRichText>
-(which is a RichTextCtrl).  The links in the text can be followed to other
+This is a POD documentation browser frame.  The POD is displayed using
+C<Wx::Perl::PodRichText> (which is a C<RichTextCtrl>).  There's menus for
+various features and the links in the text can be followed to other
 documents.
 
     +-------------------------------------------+
@@ -592,11 +593,11 @@ The initial window size follows the 80x30 initial size of the
 C<Wx::Perl::PodRichText> display widget.  Program code or the user can make
 the window bigger or smaller as desired.
 
-The menubar is available from the usual frame C<< $browser->GetMenuBar() >>
-to make additions or modifications.  The quit menu item (C<Wx::wxID_EXIT>)
-closes the window with C<< $browser->quit() >> described below.  In a
-multi-window program this only closes the PodBrowser window, it doesn't exit
-the whole program.
+The menubar is available from the usual C<Wx::Frame> method
+C<< $browser->GetMenuBar() >> to make additions or modifications.  The quit
+menu item (C<Wx::wxID_EXIT>) closes the window with C<< $browser->quit() >>
+described below.  In a multi-window program this only closes the
+C<PodBrowser> window, it doesn't exit the whole program.
 
 See L<wx-perl-podbrowser> for a standalone program running a PodBrowser
 window.  Or see F<examples/podbrowser.pl> in the Wx-Perl-PodBrowser sources
@@ -618,19 +619,14 @@ The optional C<$parent>, C<$id> and C<$title> arguments are per
 C<< Wx::Frame->new() >>.
 
 The default C<$title> is "POD Browser".  An application could set something
-more specific if displaying its help pages, either here at creation or later
-with C<< $browser->SetTitle() >> in the usual way.
+more specific if displaying its help pages, either when creating the browser
+or later with the usual C<Wx::Frame> method C<< $browser->SetTitle() >>.
 
 =back
 
 =head2 Methods
 
 =over 4
-
-=item C<< $browser->reload() >>
-
-Re-read the current POD module or file.  This is the "File/Reload" menu
-entry.
 
 =item C<< $browser->go_back() >>
 
@@ -644,10 +640,15 @@ the "File/Back" and "File/Forward" menu entries.
 Go to the POD of the PodBrowser module itself.  This is the "Help/POD
 Browser POD" menu entry.
 
+=item C<< $browser->reload() >>
+
+Re-read the current POD module or file.  This is the "File/Reload" menu
+entry.
+
 =item C<< $browser->quit() >>
 
-Close the PodBrowser window.  This is the "File/Quit" menu entry (the usual
-C<wxID_EXIT>).  It closes the window with the usual frame
+Close the PodBrowser window.  This is the "File/Quit" menu entry (which is
+C<wxID_EXIT>).  It closes the window with the usual C<Wx::Frame> method
 C<< $browser->Close() >>.
 
 The C<EVT_CLOSE()> handler does a C<< $browser->Destroy() >> to destroy the
@@ -663,18 +664,18 @@ to choose that?
 
 =item C<< $browser->popup_print() >>
 
-Open a print dialog for the POD document.  This is the "File/PrintD" menu
-entry (the usual C<wxID_PRINT>).
+Open a print dialog for the POD document.  This is the "File/Print" menu
+entry (which is C<wxID_PRINT>).
 
 =item C<< $browser->popup_print_preview() >>
 
 Open a print-preview dialog for the POD document.  This is the "File/Print
-Preview" menu entry (the usual C<wxID_PREVIEW>).
+Preview" menu entry (which is C<wxID_PREVIEW>).
 
 =item C<< $browser->popup_print_setup() >>
 
-Open a page setup dialog for printing.  This is the "File/Page Setup" menu
-entry (the usual C<wxID_PRINT_SETUP>).
+Open a printer page setup dialog.  This is the "File/Page Setup" menu entry
+(which is C<wxID_PRINT_SETUP>).
 
 =back
 
@@ -685,8 +686,8 @@ entry (the usual C<wxID_PRINT_SETUP>).
 =item C<< $browser->popup_about_dialog() >>
 
 Open the "about" dialog for C<$browser>.  This is the Help/About menu entry
-(the usual C<wxID_ABOUT>).  It displays a C<Wx::AboutBox()> with the
-C<< $browser->about_dialog_info() >> per below.
+(the usual C<wxID_ABOUT>).  It displays a C<Wx::AboutBox()> containing the
+C<< $browser->about_dialog_info() >> below.
 
 =item C<< $info = $browser->about_dialog_info() >>
 
@@ -701,8 +702,8 @@ L<Wx>
 
 =head2 Other Ways to Do It
 
-L<Wx::Perl::PodEditor> does a similar thing, also in a C<Wx::RichTextCtrl>,
-but designed for editing the POD.
+L<Wx::Perl::PodEditor> does a similar thing, and in a C<Wx::RichTextCtrl>
+too, but designed for editing the POD.
 
 L<Padre::Wx::Frame::POD> displays POD in a C<Wx::HtmlWindow>, converted to
 HTML with a special C<Pod::Simple::XHTML>.

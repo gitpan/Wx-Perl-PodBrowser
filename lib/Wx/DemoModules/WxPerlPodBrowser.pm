@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 # Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
@@ -21,6 +19,7 @@
 package Wx::DemoModules::WxPerlPodBrowser;
 use 5.008;
 use strict;
+use warnings;
 use Wx;
 use base 'Wx::Panel';
 
@@ -28,7 +27,7 @@ use base 'Wx::Panel';
 # use Smart::Comments;
 
 
-our $VERSION = 11;
+our $VERSION = 12;
 
 use constant title         => 'WxPerlPodBrowser';
 use constant add_to_tags   => 'managed';
@@ -84,7 +83,7 @@ sub browser_create {
     my $browser = $self->{'browser'} = Wx::Perl::PodBrowser->new ($self);
     $browser->Show;
     Scalar::Util::weaken($self->{'browser'});
-    
+
     $self->{'destroy_button'}->Enable(1);
   }
 }
@@ -115,7 +114,7 @@ sub browser_goto_demo_pod {
 1;
 __END__
 
-=for stopwords Wx Wx-Perl-PodBrowser Ryde
+=for stopwords Wx Wx-Perl-PodBrowser Ryde Goto
 
 =head1 NAME
 
@@ -129,17 +128,18 @@ Wx::DemoModules::WxPerlPodBrowser -- demonstrate Wx::Perl::PodBrowser
 
 =head1 DESCRIPTION
 
-This module runs L<Wx::Perl::PodBrowser> from within L<Wx::Demo>.  The
-PodBrowser is a top-level window and so is in the "Managed Windows"
-category.
+This module runs L<Wx::Perl::PodBrowser> from within L<Wx::Demo>.
+C<PodBrowser> is a top-level window and so is in the "Managed Windows"
+demo category.
 
-In the source code of this module the key part is the browser creation
+In the source code of this demo the key part is the browser creation
 
     $browser = Wx::Perl::PodBrowser->new ($self);
     $browser->Show;
 
-The "Goto Demo POD" button demonstrates a C<goto_pod()> from program code.
-In a real program it might go to the program's own POD or relevant module.
+The "Goto Demo POD" button demonstrates C<goto_pod()> called from program
+code.  In a real program it might go to the program's own POD or relevant
+module.
 
 =head1 SEE ALSO
 

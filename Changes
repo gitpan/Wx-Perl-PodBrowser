@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 12, March 2013
+    - no paragraph spacing between adjacent =item
+
 Version 11, March 2013
     - fix F<> was not displaying the intended italics
 

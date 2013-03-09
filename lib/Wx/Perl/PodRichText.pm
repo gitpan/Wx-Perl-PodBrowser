@@ -26,7 +26,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 11;
+our $VERSION = 12;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -51,7 +51,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 11;
+  our $VERSION = 12;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -773,7 +773,7 @@ sub _position_to_line {
 1;
 __END__
 
-=for stopwords Wx Wx-Perl-PodBrowser Ryde RichTextCtrl RichText ascii buttonized latin-1 0xA0 PodRichText filename formatters ie unlinked Gtk linkize PodBrowser
+=for stopwords Wx Wx-Perl-PodBrowser Ryde RichTextCtrl RichText ascii buttonized latin-1 0xA0 PodRichText filename formatters ie unlinked Gtk linkize PodBrowser wxWidgets toplevel
 
 =head1 NAME
 
@@ -825,14 +825,14 @@ C<=item> bullet points use the RichText bullet paragraphs, and numbered
 C<=item> use numbered paragraphs likewise.
 
 In Wx circa 2.8.12 numbered paragraphs with big numbers seem to display with
-the text overlapping the number, but that should be a Wx matter and for
-small numbers it's fine.
+the text overlapping the number, but that should be a Wx matter and it
+doesn't affect small numbers.
 
 =item *
 
-Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and
-C<wxRichTextLineBreakChar> for each newline.  Wraparound is avoided by a
-large negative right indent.
+Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and with
+C<wxRichTextLineBreakChar> for newlines.  Wraparound is avoided by a large
+negative right indent.
 
 Alas there's no scroll bar or visual indication of more text off to the
 right, but avoiding wraparound helps tables and ascii art.
@@ -852,8 +852,8 @@ display only a single POD.
 
 =item *
 
-C<< SE<lt>E<gt> >> non-breaking text is done with latin-1 0xA0 non-breaking
-spaces.  RichText obeys them when word wrapping.
+C<< SE<lt>E<gt> >> non-breaking text is done with 0xA0 non-breaking spaces.
+RichText doesn't break on those when word wrapping.
 
 =back
 
@@ -883,13 +883,13 @@ are
     module     => $str      module etc in @INC
     filename   => $str      file name
     filehandle => $fh
-    string     => $str
-    guess      => $str
+    string     => $str      POD marked-up text
+    guess      => $str      module or filename
 
     section  => $string
     line     => $integer     line number
 
-The target POD document is given by C<module> or C<filename>, etc.
+The target POD document is given by one of C<module>, C<filename>, etc.
 C<module> is sought with L<Pod::Find> in the usual C<@INC> path.  C<string>
 is POD in a string.
 
@@ -904,9 +904,9 @@ be given alone to move in the currently displayed document.
     # move within current display
     $podtextwidget->goto_pod (section => "DESCRIPTION");
 
-C<section> can be an C<=head> heading or an C<=item> text.  The first word
-from an C<=item> works too, which is common for the POD formatters and helps
-cross-references to L<perlfunc> and similar.
+C<section> can be a heading per C<=head> or a item per C<=item>.  The first
+word from an C<=item> works too, as is common for the POD formatters and
+helps cross-references to L<perlfunc> and similar.
 
 =item C<< $podtextwidget->reload () >>
 
@@ -934,14 +934,14 @@ Return a list of the C<=head> headings in the displayed document.
 
 Return the character position of C<$section>.  The position is per
 C<SetInsertionPoint()> etc so 0 is the start of the document.  C<$section>
-is a heading or item as described above for C<section> of C<goto_pod()>.  If
-there is no such C<$section> then return C<undef>.
+is a heading or item as described above for the C<section> option of
+C<goto_pod()>.  If there is no such C<$section> then return C<undef>.
 
 =back
 
 =head1 BUGS
 
-C<Wx::wxTE_AUTO_URL> is turned on attempting to pick up unlinked URLs, but
+C<Wx::wxTE_AUTO_URL> is turned on attempting to buttonize unlinked URLs, but
 it doesn't seem to have any effect circa Wx 2.8.12 under Gtk.  Is that
 option only for the plain C<Wx::TextCtrl>?  Perhaps could search and linkize
 apparent URLs manually, though perhaps links are best left to
@@ -950,7 +950,7 @@ C<< LE<lt>E<gt> >> markup in the source POD anyway.
 As of wxWidgets circa 2.8.12 calling C<new()> without a C<$parent> gets a
 segfault.  This is the same as C<< Wx::RichTextCtrl->new() >> called without
 a parent.  Is it good enough to let C<< Wx::RichTextCtrl->new() >> do any
-necessary C<undef> etc argument checking?
+necessary C<undef> argument checking?
 
 =head1 SEE ALSO
 

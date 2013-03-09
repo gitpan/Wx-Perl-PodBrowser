@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -60,7 +60,7 @@ WriteMakefile
         prereqs =>
         { test => { 'Test::Weaken' => 3, # version 3 for "contents"
                   },
-        }
+        },
       },
      },
    },

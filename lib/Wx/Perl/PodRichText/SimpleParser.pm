@@ -21,7 +21,7 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 11;
+our $VERSION = 12;
 
 # uncomment this to run the ### lines
 # use Smart::Comments;
@@ -91,8 +91,7 @@ sub _handle_element_start {
   if ($element eq 'Document') {
     $self->{'indent'} = 0;
 
-    my $attrs = $richtext->GetBasicStyle;
-    my $font = $attrs->GetFont;
+    my $font = $richtext->GetBasicStyle->GetFont;
     my $font_mm = $font->GetPointSize * (1/72 * 25.4);
     # 1.5 characters expressed in tenths of mm
     $self->{'indent_step'} = int($font_mm*10 * 1.5);
@@ -125,13 +124,21 @@ sub _handle_element_start {
 
   } elsif ($element =~ /^item/) {
     ### item, previous end was: $self->{'previous_element_end'}
-    # if ($self->{'previous_element_end'} =~ /^item/) {
-    #   my $pos = $richtext->GetInsertionPoint;
-    #   ### change: $richtext->GetRange($pos-1,$pos)
-    #   # $richtext->Remove($pos-1,$pos);
-    #   # $richtext->WriteText($linebreak);
-    #    $richtext->Replace($pos-2,$pos,$linebreak);
-    # }
+
+    # For   =item One
+    #       =item Two
+    # use no ParagraphSpacingAfter() on the newline of "One", and
+    # have no ParagraphSpacingBefore() on the newline of "Two" below
+    if ($self->{'previous_element_end'} =~ /^item/) {
+      my $pos = $richtext->GetInsertionPoint;
+      $richtext->SetStyle(Wx::RichTextRange->new ($pos-1, $pos),
+                          ($richtext->{'attr_para_no_space_after'} ||= do {
+                            my $attrs = Wx::RichTextAttr->new;
+                            $attrs->SetParagraphSpacingAfter(0);
+                            $attrs
+                          }));
+    }
+
     $self->{'startpos'} = $richtext->GetInsertionPoint;
     if ($element eq 'item-bullet') {
       $richtext->BeginStandardBullet("standard/circle",
@@ -219,8 +226,17 @@ sub _handle_element_end {
     $self->{'indent'} -= $self->{'indent_step'};
 
   } elsif ($element =~ /^item/) {
+    ### item end, previous end was: $self->{'previous_element_end'}
     $self->set_item_range ($self->{'startpos'}, $richtext->GetInsertionPoint);
+
+    $richtext->BeginStyle($richtext->{'attr_para_no_space_before'} ||= do {
+                            my $attrs = Wx::TextAttrEx->new;
+                            $attrs->SetParagraphSpacingBefore(0);
+                            $attrs
+                          });
     $richtext->Newline;
+    $richtext->EndStyle;
+
     if ($element eq 'item-bullet') {
       $richtext->EndStandardBullet;
     } elsif ($element eq 'item-number') {
@@ -308,27 +324,28 @@ Wx::Perl::PodRichText::SimpleParser -- parser for PodRichText
 This is an internal part of C<Wx::Perl::PodRichText>, not
 meant for outside use.
 
-The parser is a C<Pod::Simple> sub-class writing to a given target
-RichTextCtrl.  Exactly how much it does versus how much it leaves to
-PodRichText is not settled, but perhaps in the future it might be possible
-to parse into any RichTextCtrl or RichTextBuffer.
+The parser is a C<Pod::Simple> sub-class without output to a given target
+C<RichTextCtrl>.  It's not settled exactly how much is done here versus how
+much is left to the target C<PodRichText> (a C<RichTextCtrl> subclass).
+Perhaps in the future it might be possible to parse into any C<RichTextCtrl>
+or C<RichTextBuffer>.
 
-C<Pod::Simple> start/end handler calls generate calls to the RichText
-C<BeginBold()>, C<EndBold()>, etc, or C<BeginLeftIndent()> and
-C<EndLeftIndent()> etc for paragraphs, etc.  RichText indentation is an
-amount in millimetres and the current code makes a value which is about two
-"em"s of the default font.
+The start/end handler calls from C<Pod::Simple> generate calls to the
+RichText C<BeginBold()>, C<EndBold()> etc methods, or to
+C<BeginLeftIndent()> and C<EndLeftIndent()> etc for paragraphs.  RichText
+indentation is an amount in millimetres and the current code makes a value
+which is about two "em"s of the default font.
 
 =head2 Other Ways to Do It
 
-C<Pod::Parser> is also good for breaking up POD, in combination with
+C<Pod::Parser> is also good for breaking up POD, together with
 C<Pod::Escape> and C<Pod::ParseLink>.  It's used by L<Wx::Perl::PodEditor>
 (in L<Wx::Perl::PodEditor::PodParser>).
 
 An advantage of C<Pod::Simple> is that its C<parse_lines()> allows the main
 loop to push a few lines at a time into the parse to process a big document
-piec-by-piece.  There's no reason C<Pod::Parser> couldn't do the same but as
-of its version 1.37 it doesn't.
+piece-by-piece.  There's no reason C<Pod::Parser> couldn't do the same but
+as of its version 1.37 it doesn't.
 
 
 =cut

@@ -28,7 +28,7 @@ use Wx::Perl::PodBrowser;
 # use Smart::Comments;
 
 
-our $VERSION = 11;
+our $VERSION = 12;
 
 my @goto_document;
 my @goto_position;
@@ -111,7 +111,7 @@ exit 0;
 
 __END__
 
-=for stopwords Ryde
+=for stopwords Ryde Wx-Perl-PodBrowser wx-perl-podbrowser wxWidgets filename Tk Gtk Prima
 
 =head1 NAME
 
@@ -123,12 +123,12 @@ wx-perl-podbrowser -- POD browser for wxWidgets
 
 =head1 DESCRIPTION
 
-C<wx-perl-podbrowser> opens a L<Wx::Perl::PodBrowser> window to display the
-POD documentation for a given Perl module,
+C<wx-perl-podbrowser> opens a L<Wx::Perl::PodBrowser> window to display POD
+documentation for a given Perl module,
 
     wx-perl-podbrowser Hash::Util
 
-or for a filename,
+or filename
 
     wx-perl-podbrowser /usr/share/perl5/Regexp/Common.pm
 
@@ -183,7 +183,7 @@ Print the program version number and exit.
 
 L<Wx::Perl::PodBrowser>
 
-L<tkpod>, L<podviewer> (Gtk), L<podview> (Prima)
+L<tkpod> (Tk), L<podviewer> (Gtk), L<podview> (Prima)
 
 =head1 HOME PAGE
 

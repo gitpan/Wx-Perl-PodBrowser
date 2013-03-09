@@ -183,6 +183,10 @@ Foo2 - bar2
 
 =item Item One
 
+=cut
+
+=pod
+
 =item Item Two
 
 =item Item Three
@@ -204,7 +208,7 @@ Verbatim fjsdk fksdj fjks fjksd fjksd.  Fjs dfjks djfk sdjkf sdkf sdf
     atim
     atim2
 
-C<code+-------+> C<bold> I<italic> F<file> plain.
+C<code+-------+> C<bold> plain I<italic> I<I<italicitalic>> plain F<file> plain.
 
 link L<Math::Symbolic/SEE ALSO> F<filename>
 

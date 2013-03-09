@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -46,24 +46,36 @@ my $frame = Wx::Frame->new (undef, Wx::wxID_ANY(), 'Test');
 require Wx::Perl::PodBrowser;
 
 
-sub main_iterations {
-  my ($app) = @_;
-  if (! $app) { $app = Wx::App::GetInstance(); }
-  my $count = 0;
-  Wx::Yield();
-  while ($app->Pending) {
-    $count++;
-    $app->Dispatch;
-  }
-  diag "main_iterations: $count dispatches";
+sub app_mainloop_timer {
+  my $timer = Wx::Timer->new($app);
+  Wx::Event::EVT_TIMER ($app, -1, sub { $app->ExitMainLoop });
+  $timer->Start(1000, # milliseconds
+                Wx::wxTIMER_ONE_SHOT())
+    or die "Oops, cannot start timer";
+  $app->MainLoop;
 }
+
+# sub main_iterations {
+#   my ($app) = @_;
+#   if (! $app) { $app = Wx::App::GetInstance(); }
+#   my $count = 0;
+#   Wx::Yield();
+#   while ($app->Pending) {
+#     $count++;
+#     $app->Dispatch;
+#   }
+#   diag "main_iterations: $count dispatches";
+# }
 
 sub destructor_destroy {
   my ($window) = @_;
   $window->Destroy;
-  Wx::Yield();  # to run queued destroys
-  #  main_iterations();
+  app_mainloop_timer($app);  # to run queued destroys
 }
+
+# If $ref is a Wx::Window then return a list of its GetChildren(), and some
+# other content widgets such as menubar, menu items, etc.
+# If $ref is not a Wx::Window then return an empty list.
 sub contents_children {
   my ($ref) = @_;
   my @ret;
@@ -107,7 +119,7 @@ sub my_contents {
        destructor => \&destructor_destroy,
        contents   => \&my_contents,
      });
-  is ($leaks, undef, 'Test::Weaken deep garbage collection');
+  is ($leaks, undef, 'Test::Weaken deep garbage collection empty and Destroy()');
   MyTestHelpers::test_weaken_show_leaks($leaks);
 }
 
@@ -124,7 +136,7 @@ sub my_contents {
        destructor => \&destructor_destroy,
        contents   => \&my_contents,
      });
-  is ($leaks, undef, 'Test::Weaken deep garbage collection');
+  is ($leaks, undef, 'Test::Weaken deep garbage collection with content and Destroy()');
   MyTestHelpers::test_weaken_show_leaks($leaks);
 }
 
