@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License along
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# cf wxperl_demo.pl -s wxSearchCtrl
 
 use 5.008;
 use strict;

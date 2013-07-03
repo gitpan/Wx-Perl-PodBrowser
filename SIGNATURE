@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.68.
+signed via the Module::Signature module, version 0.73.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -15,46 +15,48 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 842745cb706f8f2126506f544492f7a80dbe29b3 COPYING
-SHA1 392f6547f8ed49ce2ccf9fee21b2bbd5611729cc Changes
-SHA1 476985f9e3887f2cd54038d24ce2460dc9618bba MANIFEST
+SHA1 49755f1fd9fb784aa5335d6229a7a9d20f4ab05f Changes
+SHA1 995c21c9b18ad1295eaea56348e4f13416cbaac1 MANIFEST
 SHA1 b758f740af57256154bbf4e1f8a760a1b9f9dfe1 MANIFEST.SKIP
-SHA1 ee01b1dd2a8e994ca55ea6f0029407b83393be11 META.yml
+SHA1 e0b3887d242fda105336b04a0a009515f684ae35 META.yml
 SHA1 fedbac73e6c5407d41514f0660a0103c5f25e68b Makefile.PL
-SHA1 f644117d4f19659e72ec678449c678fa0b635cfd debian/changelog
+SHA1 4500a001b4a271fa44eee96da386c5333d552d58 debian/changelog
 SHA1 ac3478d69a3c81fa62e60f5c3696165a4e5e6ac4 debian/compat
-SHA1 79e0a290bcb5c6d8d2de29b6d34b33345f73a6c4 debian/control
+SHA1 a372639aa917c2f0bbd2219f71f7d1bf41f915eb debian/control
 SHA1 3d1c5b7422583ef15c173c3db8a88fcd876bd522 debian/copyright
 SHA1 b64b53be6cbc9b135717379be8e209114db372e5 debian/rules
 SHA1 61652cd1568dcf2614df833eba241755eee34e89 debian/source/format
 SHA1 2e7efb3043d6f5f86fc063385727cc99e945bf40 debian/watch
-SHA1 d99dd98d09e7aedcf8e2f44ac51b8a4e249f6faa devel/PodParser.pm
+SHA1 9be8c431e8400723915a766fb639d464157587af devel/PodParser.pm
 SHA1 2b1e63fe364d0b9d6ef4b28d12983a10a6b2bd28 devel/cpanshell-podreader.pl
-SHA1 d14da884ee7f9e9541d5cb30335f18aa36d22d04 devel/index.pl
+SHA1 5082aad9a56e27e4c3aeba4d1a3acd55f31fb224 devel/index.pl
 SHA1 33b7e1eef12b26e3b1d78dedfcd00da4ef11b638 devel/lib/Wx/DemoModules/WxPerlPodRichText.pm
 SHA1 9cc2bdabe6bdbaceeec945678e510087704cfc88 devel/menu-remove.pl
 SHA1 d1635cceb0fe2b8047983a928503678c2ce84cab devel/misc.pl
 SHA1 73f85e5930d8c8ce39f899194b55fbebfbd4cd1b devel/screenshot.pl
 SHA1 77325ebe395933ffe6d0f23264b1b2253c53c788 devel/search.pl
-SHA1 9413451f5d90c90675bf507a7a301a83a20efa63 devel/wx-pod.pl
+SHA1 4a1a1701c262037131e71322de9e5d491c37bc91 devel/wx-misc.pl
+SHA1 5ea33f5c0e217b396373e24efeaa5909d1216b11 devel/wx-pod.pl
 SHA1 9de5ac7890101291b55becb08b2eb2e9d7e4c90b examples/podbrowser.pl
-SHA1 3afa38ffb9159af1f71271e4c001fd529ce8255a lib/Wx/DemoModules/WxPerlPodBrowser.pm
-SHA1 46249e9333b7c000638b7f7e1ca150fd088ec19e lib/Wx/Perl/PodBrowser.pm
-SHA1 407f6942536ed28de754e1021c56d9fc0fd66418 lib/Wx/Perl/PodRichText.pm
-SHA1 651792187ee25de383c54ac6fc134917e71b932e lib/Wx/Perl/PodRichText/SimpleParser.pm
+SHA1 2974c3b566ef4bb0eb1fbab1d3ce2c48841cbc16 lib/Wx/DemoModules/WxPerlPodBrowser.pm
+SHA1 26aade2ba9046473e2464212e3ed1d1a46f9185d lib/Wx/Perl/PodBrowser.pm
+SHA1 c599402cbbdfa41e984c810e99fe990324db2ca7 lib/Wx/Perl/PodRichText.pm
+SHA1 1a950c07c926f0beceb4ac71033c69a7200660f6 lib/Wx/Perl/PodRichText/SimpleParser.pm
 SHA1 3855de075da37f5bc4e6a5534b2f00cc14872a98 t/MyTestHelpers.pm
 SHA1 65924442b30ed46c54c60453e9d7b2da8e808a29 t/PodBrowser-weaken.t
-SHA1 a17bdde7af23d0c8dd891489d780af64495c83d1 t/PodBrowser.t
+SHA1 269c239e617ba454f2526a36963ee149b750de2f t/PodBrowser.t
+SHA1 c9079565f75bc129d5e938f48010126e15c1d8d9 t/PodRichText-SimpleParser.t
 SHA1 4c9d7fc2675eeec03f781fceb53b63536fb559c9 t/PodRichText-weaken.t
-SHA1 4715e7eed883010992212535e7482f9eff4b45d2 t/PodRichText.t
-SHA1 457fa797db0f6d3b1cd34f70fb9e530f1ea08b2b wx-perl-podbrowser
-SHA1 811028548aa4b360b5086d1af3150f9dde348aa6 xt/0-META-read.t
+SHA1 35695d496e78e7b0735885cd5aa6e28e6441c6a0 t/PodRichText.t
+SHA1 f1c3b0eb6b8117080f86da1b15668ab21fb696ec wx-perl-podbrowser
+SHA1 f2ceb7bb4bf68bd24728b90918e63d251fd06183 xt/0-META-read.t
 SHA1 c9e7a47e1f397eb5f46d7e4ef21754d9df76e36e xt/0-Test-ConsistentVersion.t
 SHA1 d9e7f38a8dcfdb76c56951e4214be8eeda2e2289 xt/0-Test-DistManifest.t
 SHA1 9496e4a2a2734c7093ab6961900dd7a55800976e xt/0-Test-Pod.t
 SHA1 083242d959c1a9242c874982e4585872a95bec93 xt/0-Test-Synopsis.t
 SHA1 ec454b1b524d2d0b35e5a7d8292ad13d82becab5 xt/0-Test-YAML-Meta.t
-SHA1 bdc59bfb29089f4c801a4282c0c3498f9a7982e5 xt/0-examples-xrefs.t
-SHA1 2fb2ce60ce5c740d1eb7e3b55a96f3ccb84d38c3 xt/0-file-is-part-of.t
+SHA1 3c929b147a70e1d0cfe63d69223a5ed407a295b2 xt/0-examples-xrefs.t
+SHA1 7bc810750906ae91a13b16c7bd833dd6e1c9741b xt/0-file-is-part-of.t
 SHA1 aeb6f41dfae96d04459448f6c3e3dee44691e722 xt/0-no-debug-left-on.t
 SHA1 84a47c1d71fd58797a2754030998dfb673b62811 xtools/my-check-copyright-years.sh
 SHA1 bfb75ffb7a834c345288e01f561b12695f191d12 xtools/my-check-file-part-of.sh
@@ -69,7 +71,7 @@ SHA1 f90084e1d6f95abb12eea896cd1cc850402d7726 xtools/my-wunused.sh
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iD8DBQFRO6xaLFMCIV9q3ToRArrJAKC53E0ADeAg6cS3KHbCZqJbwFKLggCeJwso
-m3ippdHu8n3OkqNguWD7z4U=
-=IL7I
+iD8DBQFR026JLFMCIV9q3ToRAgQ7AKCLJMcNmgY6bjnbZU31+x+3sq7IMwCeKAgf
+BsumDO0GiecBMGPAIwsIpWk=
+=415B
 -----END PGP SIGNATURE-----

@@ -26,7 +26,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 12;
+our $VERSION = 13;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -51,7 +51,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 12;
+  our $VERSION = 13;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -80,14 +80,17 @@ sub new {
                                  Wx::GetTranslation('Nothing selected'),
                                  Wx::wxDefaultPosition(),
                                  Wx::wxDefaultSize(),
-                                 (Wx::wxTE_AUTO_URL()
-                                  | Wx::wxTE_MULTILINE()
-                                  | Wx::wxTE_READONLY()
-                                  | Wx::wxHSCROLL()
-                                  | Wx::wxTE_PROCESS_ENTER()
+                                 (Wx::wxRE_READONLY()
+
+                                  # wxRE_MULTILINE() is in richtextctrl.h
+                                  # but not documented.  Is RichText always
+                                  # multi-line?
+                                  # | Wx::wxRE_MULTILINE()
+
+                                  # Does wxHSCROLL do anything to RichText?
+                                  # | Wx::wxHSCROLL()
                                  ));
   Wx::Event::EVT_TEXT_URL ($self, $self, 'OnUrl');
-  Wx::Event::EVT_TEXT_ENTER ($self, $self, 'OnEnter');
   Wx::Event::EVT_KEY_DOWN ($self, 'OnKey');
 
   # Must hold stylesheet in $self->{'stylesheet'} or it's destroyed prematurely
@@ -611,18 +614,22 @@ sub goto_link_at_pos {
   ### goto_link_at_pos(): $pos
 
   my $attrs = $self->GetRichTextAttrStyle($pos);
-  if (defined (my $url = $attrs->GetURL)) {
-    ### $url
-    if ($url =~ m{^pod://([^#]+)?(#(.*))?}) {
-      my $module = $1;
-      my $section = $3;
-      ### $module
-      ### $section
-      $self->goto_pod (module  => $module,
-                       section => $section);
-    } else {
-      Wx::LaunchDefaultBrowser($url);
-    }
+  my $url = $attrs->GetURL;
+  ### $url
+
+  if ($url eq '') {
+    ### no url at this pos ...
+  } elsif ($url =~ m{^pod://([^#]+)?(#(.*))?}) {
+    ### pod url ...
+    my $module = $1;
+    my $section = $3;
+    ### $module
+    ### $section
+    $self->goto_pod (module  => $module,
+                     section => $section);
+  } else {
+    ### other url ...
+    Wx::LaunchDefaultBrowser($url);
   }
 }
 
@@ -799,8 +806,9 @@ C<Wx::Perl::PodBrowser> is a subclass of C<Wx::RichTextCtrl>.
 
 =head1 DESCRIPTION
 
-This is a C<Wx::RichTextCtrl> displaying formatted POD documents from
-F<.pod> or F<.pm> files or parsed from a string or file handle.
+C<Wx::Perl::PodBrowser> is a C<Wx::RichTextCtrl> subclass for read-only
+display of formatted POD documents.  The POD can be from F<.pod> or F<.pm>
+files or parsed from a string or file handle.
 
 See L<Wx::Perl::PodBrowser> for a whole toplevel browser window.
 
@@ -816,23 +824,23 @@ The POD to text conversion tries to use RichText features.
 
 =item *
 
-Indentation is done with the left indent feature so text paragraphs flow
-nicely within C<=over> etc.
+Indentation is done with left indent so text paragraphs flow nicely within
+C<=over> etc.
 
 =item *
 
-C<=item> bullet points use the RichText bullet paragraphs, and numbered
-C<=item> use numbered paragraphs likewise.
+C<=item> bullet points are Text bullet paragraphs and numbered C<=item> are
+numbered paragraphs.
 
-In Wx circa 2.8.12 numbered paragraphs with big numbers seem to display with
-the text overlapping the number, but that should be a Wx matter and it
-doesn't affect small numbers.
+In Wx circa 2.8.12, numbered paragraphs with big numbers seem to display
+with the text overlapping the number, but that should be a Wx matter and
+small numbers are not affected.
 
 =item *
 
-Verbatim paragraphs are done in C<wxFONTFAMILY_TELETYPE> and with
-C<wxRichTextLineBreakChar> for newlines.  Wraparound is avoided by a large
-negative right indent.
+Verbatim paragraphs are in C<wxFONTFAMILY_TELETYPE> and with
+C<wxRichTextLineBreakChar> for newline line breaks.  Wraparound is avoided
+by a large negative right indent.
 
 Alas there's no scroll bar or visual indication of more text off to the
 right, but avoiding wraparound helps tables and ascii art.
@@ -845,15 +853,16 @@ C<pod://> pseudo-URL.  Is a C<pod:> URL a good idea?  It won't be usable by
 anything else, but the attribute is a handy place to hold the link
 destination.
 
-The current code has an C<EVT_TEXT_URL()> handler following to target POD or
+The current code has an C<EVT_TEXT_URL()> handler going to target POD, or
 C<Wx::LaunchDefaultBrowser()> for URLs.  But that might change, as it might
 be better to leave that to the browser parent if some applications wanted to
 display only a single POD.
 
 =item *
 
-C<< SE<lt>E<gt> >> non-breaking text is done with 0xA0 non-breaking spaces.
-RichText doesn't break on those when word wrapping.
+C<< SE<lt>E<gt> >> non-breaking uses 0xA0 non-breaking spaces to prevent
+word wrapping.  A non-breaking run wider than the widget width is broken
+rather than disappearing off the right though.
 
 =back
 
@@ -886,8 +895,9 @@ are
     string     => $str      POD marked-up text
     guess      => $str      module or filename
 
-    section  => $string
-    line     => $integer     line number
+    section     => $string
+    line        => $integer     line number
+    heading_num => $n           heading number
 
 The target POD document is given by one of C<module>, C<filename>, etc.
 C<module> is sought with L<Pod::Find> in the usual C<@INC> path.  C<string>
@@ -898,15 +908,20 @@ is POD in a string.
 C<guess> tries a module or filename.  It's intended for command line or
 similar loose input to let the user enter either module or filename.
 
-Optional C<section> or C<line> is a position within the document.  They can
-be given alone to move in the currently displayed document.
+Optional C<section>, C<line> or C<heading_num> is a position within the
+document.  They can be given alone to move in the currently displayed
+document.
 
     # move within current display
     $podtextwidget->goto_pod (section => "DESCRIPTION");
 
-C<section> can be a heading per C<=head> or a item per C<=item>.  The first
-word from an C<=item> works too, as is common for the POD formatters and
-helps cross-references to L<perlfunc> and similar.
+C<section> is a heading per C<=head> or a item per C<=item>.  The first word
+from an C<=item> works too, as is common for the POD formatters and helps
+cross-references to L<perlfunc> and similar.
+
+C<heading_num> goes to a heading numbered consecutively starting from 0 for
+the first C<=head>, as per the C<get_heading_list()>.  Going by number
+ensures any heading can be reached even when names might be duplicated.
 
 =item C<< $podtextwidget->reload () >>
 
@@ -921,8 +936,8 @@ therefore suitable for a C<reload()>.
 
 =head2 Content Methods
 
-POD is parsed progressively under a timer and the following methods give the
-part parsed so far.
+POD is parsed progressively under a timer and the following methods return
+information only on as much as parsed so far.
 
 =over
 
@@ -941,16 +956,10 @@ C<goto_pod()>.  If there is no such C<$section> then return C<undef>.
 
 =head1 BUGS
 
-C<Wx::wxTE_AUTO_URL> is turned on attempting to buttonize unlinked URLs, but
-it doesn't seem to have any effect circa Wx 2.8.12 under Gtk.  Is that
-option only for the plain C<Wx::TextCtrl>?  Perhaps could search and linkize
-apparent URLs manually, though perhaps links are best left to
-C<< LE<lt>E<gt> >> markup in the source POD anyway.
-
-As of wxWidgets circa 2.8.12 calling C<new()> without a C<$parent> gets a
-segfault.  This is the same as C<< Wx::RichTextCtrl->new() >> called without
-a parent.  Is it good enough to let C<< Wx::RichTextCtrl->new() >> do any
-necessary C<undef> argument checking?
+As of wxWidgets circa 2.8.12 calling C<new()> without a C<$parent>
+segfaults.  This is the same as C<< Wx::RichTextCtrl->new() >> called
+without a parent.  Is it good enough to let C<< Wx::RichTextCtrl->new() >>
+do any necessary C<undef> argument checking?
 
 =head1 SEE ALSO
 

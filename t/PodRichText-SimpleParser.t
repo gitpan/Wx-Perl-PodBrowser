@@ -26,15 +26,15 @@ use lib 't';
 use MyTestHelpers;
 MyTestHelpers::nowarnings();
 
+# uncomment this to run the ### lines
+# use Smart::Comments;
+
 
 eval { require Wx }
   or plan skip_all => "due to Wx display not available -- $@";
 
-plan tests => 6;
-
-my $app = Wx::SimpleApp->new;
-my $frame = Wx::Frame->new (undef, Wx::wxID_ANY(), 'Test');
-require Wx::Perl::PodRichText;
+plan tests => 8;
+require Wx::Perl::PodRichText::SimpleParser;
 
 
 #------------------------------------------------------------------------------
@@ -42,40 +42,40 @@ require Wx::Perl::PodRichText;
 
 my $want_version = 13;
 {
-  is ($Wx::Perl::PodRichText::VERSION, $want_version,
+  is ($Wx::Perl::PodRichText::SimpleParser::VERSION, $want_version,
       'VERSION variable');
-  is (Wx::Perl::PodRichText->VERSION, $want_version,
+  is (Wx::Perl::PodRichText::SimpleParser->VERSION, $want_version,
       'VERSION class method');
 
-  ok (eval { Wx::Perl::PodRichText->VERSION($want_version); 1 },
+  ok (eval { Wx::Perl::PodRichText::SimpleParser->VERSION($want_version); 1 },
       "VERSION class check $want_version");
   my $check_version = $want_version + 1000;
-  ok (! eval { Wx::Perl::PodRichText->VERSION($check_version); 1 },
+  ok (! eval { Wx::Perl::PodRichText::SimpleParser->VERSION($check_version); 1 },
       "VERSION class check $check_version");
 
-  # my $podtext = Wx::Perl::PodRichText->new ($frame);
-  # is ($podtext->VERSION,  $want_version, 'VERSION object method');
-  #
-  # ok (eval { $podtext->VERSION($want_version); 1 },
-  #     "VERSION object check $want_version");
-  # ok (! eval { $podtext->VERSION($check_version); 1 },
-  #     "VERSION object check $check_version");
+  my $parser = Wx::Perl::PodRichText::SimpleParser->new;
+  is ($parser->VERSION,  $want_version, 'VERSION object method');
+  ok (eval { $parser->VERSION($want_version); 1 },
+      "VERSION object check $want_version");
+  ok (! eval { $parser->VERSION($check_version); 1 },
+      "VERSION object check $check_version");
 }
 
 
 #-----------------------------------------------------------------------------
-# Scalar::Util::weaken
+# =encoding utf-8 not through to output
 
-my $podtext = Wx::Perl::PodRichText->new ($frame);
+my $app = Wx::SimpleApp->new;
+my $frame = Wx::Frame->new (undef, Wx::wxID_ANY(), 'Test');
+require Wx::Perl::PodRichText;
 {
-  my @heading_list = $podtext->get_heading_list;
-  is_deeply (\@heading_list, []);
+  my $podtext = Wx::Perl::PodRichText->new ($frame);
+  $podtext->goto_pod (string => "=encoding utf-8\n\n\nThis is some text.\n");
+  my $str = $podtext->GetValue;
+  ### $str
+  unlike ($str, qr/utf/i,
+          '=encoding charset name not shown in text');
 }
 
-diag "weakening";
-require Scalar::Util;
-$podtext->Destroy;
-Scalar::Util::weaken ($podtext);
-is ($podtext, undef, 'garbage collect when weakened');
-
+#-------------------------------------------------------------------------------
 exit 0;

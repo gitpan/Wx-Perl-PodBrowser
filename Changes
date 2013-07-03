@@ -17,6 +17,10 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 13, July 2013
+    - goto_pod() new heading_num=>$n
+    - fix don't show =encoding charset name in the text
+
 Version 12, March 2013
     - no paragraph spacing between adjacent =item
 

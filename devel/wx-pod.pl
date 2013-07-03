@@ -177,6 +177,9 @@ Foo2 - bar2
 
 =head1 DESCRIPTION
 
+Breakable words and then S<block of non breaking spaces extending to HERE>
+blah blah.
+
 =head4 Foo & bar && Quux
 
 =over
@@ -220,7 +223,6 @@ L<XML::RSS::Timing/AUTHOR>
 
 plain L<http://localhost/index.html>
 disp L<display part|http://localhost/index.html>
-S<non breaking space section>
 
 C<code> B<bold> I<italic> E<65> E<48> E<gt> E<fdjk> B<I<bold+italic>>
 
@@ -449,11 +451,11 @@ HERE
     $browser->goto_pod (guess => $ARGV[0]);
   } else {
     # $browser->goto_pod (string => "=pod\n\nabc");
-    $browser->goto_pod (string => $str);
+    # $browser->goto_pod (string => $str);
+    $browser->goto_pod (module => 'Math::Symbolic::AuxFunctions');
     # $browser->goto_pod (string => $str);
     # $browser->goto_pod (module => 'Math::PlanePath::PeanoCurve',
     #                     section => 'SEE ALSO');
-    # $browser->goto_pod (module => 'Math::Symbolic');
     # $browser->goto_pod (module => 'FindBin');
     # $browser->goto_pod (module  => 'perlfunc',
     #                     section => 'abs');

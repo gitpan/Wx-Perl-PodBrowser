@@ -15,6 +15,7 @@ devel/misc.pl
 devel/PodParser.pm
 devel/screenshot.pl
 devel/search.pl
+devel/wx-misc.pl
 devel/wx-pod.pl
 examples/podbrowser.pl
 lib/Wx/DemoModules/WxPerlPodBrowser.pm
@@ -28,6 +29,7 @@ SIGNATURE
 t/MyTestHelpers.pm
 t/PodBrowser-weaken.t
 t/PodBrowser.t
+t/PodRichText-SimpleParser.t
 t/PodRichText-weaken.t
 t/PodRichText.t
 wx-perl-podbrowser

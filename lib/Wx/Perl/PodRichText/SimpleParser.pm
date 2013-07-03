@@ -21,7 +21,7 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 12;
+our $VERSION = 13;
 
 # uncomment this to run the ### lines
 # use Smart::Comments;
@@ -64,6 +64,10 @@ sub _handle_text {
   ### _handle_text: $text
   my $richtext = $self->{'richtext'};
 
+  if ($self->{'in_encoding'}) {
+    # "=encoding utf-8" gives _handle_text("utf-8"), don't output it
+    return;
+  }
   if ($self->{'in_X'}) {
     $self->{'X'} .= $text;
     return;
@@ -106,6 +110,9 @@ sub _handle_element_start {
     $richtext->{'heading_list'} = [];
     $richtext->{'heading_pos_list'} = [];
     $richtext->{'index_list'} = [];
+
+  } elsif ($element =~ /^encoding/) {
+    $self->{'in_encoding'} = 1;
 
   } elsif ($element eq 'Para'
            || $element eq 'Data') {  # =end text
@@ -201,6 +208,9 @@ sub _handle_element_end {
     $richtext->EndSuppressUndo;
     $richtext->EndParagraphSpacing;
     $richtext->SetInsertionPoint(0);
+
+  } elsif ($element =~ /^encoding/) {
+    $self->{'in_encoding'} = 0;
 
   } elsif ($element eq 'Para'
            || $element eq 'Data') {   # =begin text
@@ -321,20 +331,20 @@ Wx::Perl::PodRichText::SimpleParser -- parser for PodRichText
 
 =head1 DESCRIPTION
 
-This is an internal part of C<Wx::Perl::PodRichText>, not
-meant for outside use.
+This is an internal part of C<Wx::Perl::PodRichText> not meant for outside
+use.
 
-The parser is a C<Pod::Simple> sub-class without output to a given target
-C<RichTextCtrl>.  It's not settled exactly how much is done here versus how
-much is left to the target C<PodRichText> (a C<RichTextCtrl> subclass).
-Perhaps in the future it might be possible to parse into any C<RichTextCtrl>
-or C<RichTextBuffer>.
+The parser is a C<Pod::Simple> sub-class with output to a given target
+C<Wx::RichTextCtrl> widget.  It's not settled exactly how much is done here
+versus how much is left to the target C<Wx::Perl::PodRichText> (which is a
+C<Wx::RichTextCtrl> subclass).  Perhaps in the future it might be possible
+to parse into any C<RichTextCtrl> or C<RichTextBuffer>.
 
 The start/end handler calls from C<Pod::Simple> generate calls to the
-RichText C<BeginBold()>, C<EndBold()> etc methods, or to
-C<BeginLeftIndent()> and C<EndLeftIndent()> etc for paragraphs.  RichText
-indentation is an amount in millimetres and the current code makes a value
-which is about two "em"s of the default font.
+RichText attribute methods such as C<BeginBold()>, C<EndBold()> etc, or for
+paragraph attributes C<BeginLeftIndent()> and C<EndLeftIndent()> etc.
+RichText indentation is an amount in millimetres and the current code makes
+a value which is about two "em"s of the default font.
 
 =head2 Other Ways to Do It
 
@@ -342,10 +352,10 @@ C<Pod::Parser> is also good for breaking up POD, together with
 C<Pod::Escape> and C<Pod::ParseLink>.  It's used by L<Wx::Perl::PodEditor>
 (in L<Wx::Perl::PodEditor::PodParser>).
 
-An advantage of C<Pod::Simple> is that its C<parse_lines()> allows the main
-loop to push a few lines at a time into the parse to process a big document
-piece-by-piece.  There's no reason C<Pod::Parser> couldn't do the same but
-as of its version 1.37 it doesn't.
+An advantage of C<Pod::Simple> is that its C<parse_lines()> allows a Wx main
+event loop to push a few lines at a time into the parse to process a big
+document piece-by-piece.  There's no reason C<Pod::Parser> couldn't do the
+same but as of its version 1.37 it doesn't.
 
 
 =cut
