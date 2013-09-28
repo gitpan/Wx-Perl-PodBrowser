@@ -26,7 +26,7 @@ use Wx;
 use Wx::RichText;
 
 use base 'Wx::RichTextCtrl';
-our $VERSION = 13;
+our $VERSION = 14;
 
 use base 'Exporter';
 our @EXPORT_OK = ('EVT_PERL_PODRICHTEXT_CHANGED');
@@ -51,7 +51,7 @@ sub EVT_PERL_PODRICHTEXT_CHANGED ($$$) {
   use strict;
   use warnings;
   use base 'Wx::PlCommandEvent';
-  our $VERSION = 13;
+  our $VERSION = 14;
   sub GetWhat {
     my ($self) = @_;
     return $self->{'what'};
@@ -220,7 +220,7 @@ sub goto_pod {
       $options{'filename'} = $filename;
       $location{'module'} = $module;
     } else {
-      $self->show_error_text ("Module not found: $module");
+      $self->show_error_text ("No POD for module: $module");
       %options = ();
     }
   }
@@ -619,13 +619,12 @@ sub goto_link_at_pos {
 
   if ($url eq '') {
     ### no url at this pos ...
-  } elsif ($url =~ m{^pod://([^#]+)?(#(.*))?}) {
+  } elsif (my ($target,$section)
+           = Wx::Perl::PodRichText::SimpleParser::_pod_url_split($url)) {
     ### pod url ...
-    my $module = $1;
-    my $section = $3;
     ### $module
     ### $section
-    $self->goto_pod (module  => $module,
+    $self->goto_pod (module  => $target,
                      section => $section);
   } else {
     ### other url ...

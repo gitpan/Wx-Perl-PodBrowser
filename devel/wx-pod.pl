@@ -44,129 +44,6 @@ my $str;
 #   $app->MainLoop;
 #   exit 0;
 # }
-#
-# {
-#   my $app = Wx::SimpleApp->new;
-#   my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
-#
-#   my $textctrl = Wx::RichTextCtrl->new ($frame);
-#   $textctrl->WriteText ('abc ' x 100);
-#   $textctrl->Newline;
-#
-#   $textctrl->BeginRightIndent(-100);
-#   $textctrl->WriteText ('abc ' x 100);
-#   $textctrl->Newline;
-#   $textctrl->EndRightIndent;
-#
-#   $frame->SetSize (800, 800);
-#   $frame->Show;
-#   $app->MainLoop;
-#   exit 0;
-# }
-
-if (0) {
-  my $app = Wx::SimpleApp->new;
-
-  my $main = Wx::Frame->new (undef, Wx::wxID_ANY(), 'Main');
-  $main->SetSize(100,100);
-  $main->Show;
-
-  my $m2 = Wx::Frame->new (undef, Wx::wxID_ANY(), 'Main');
-  $m2->SetSize(100,100);
-  $m2->Show;
-
-  my $timer = Wx::Timer->new ($m2);
-  Wx::Event::EVT_TIMER ($m2,
-                        0, # id, through to $event->GetId
-                        sub {
-                          ### timer fires ...
-                        });
-  $timer->Start(1000, # milliseconds
-                Wx::wxTIMER_CONTINUOUS());
-  undef $timer;
-#  $m2->Destroy;
-
-  $app->MainLoop;
-  exit 0;
-}
-
-if (0) {
-  # indent cumulative
-  my $app = Wx::SimpleApp->new;
-  my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
-
-  my $textctrl = Wx::RichTextCtrl->new ($frame);
-  $textctrl->BeginLeftIndent(100);
-  $textctrl->BeginLeftIndent(100);
-  $textctrl->WriteText ('abc');
-  $textctrl->Newline;
-  $textctrl->EndLeftIndent;
-  $textctrl->WriteText ('def');
-  $textctrl->Newline;
-  $textctrl->EndLeftIndent;
-
-  $frame->SetSize (800, 800);
-  $frame->Show;
-  $app->MainLoop;
-  exit 0;
-}
-
-
-if (0) {
-  # bold inherited
-  my $app = Wx::SimpleApp->new;
-  my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
-
-  my $textctrl = my $self = Wx::RichTextCtrl->new ($frame);
-  $textctrl->BeginBold;
-  $textctrl->WriteText ('abc');
-  $textctrl->EndBold;
-  $textctrl->Newline;
-  $textctrl->WriteText ('jfd');
-  $textctrl->Newline;
-
-  $textctrl->EndAllStyles;
-  $textctrl->SetInsertionPoint(0);
-  {
-    my $style = $self->GetBasicStyle;
-    $self->SetDefaultStyle ($style);
-    ### $style
-    ### flags: $style->GetFlags
-  }
-  # {
-  #   my $style = Wx::TextAttrEx->new;
-  #   $self->SetDefaultStyle ($style);
-  # }
-  $textctrl->Clear;
-
-  $textctrl->WriteText ('def');
-  $textctrl->Newline;
-
-  $frame->SetSize (800, 800);
-  $frame->Show;
-  $app->MainLoop;
-  exit 0;
-}
-
-if (0) {
-  my $app = Wx::SimpleApp->new;
-  my $frame = Wx::Frame->new(undef, Wx::wxID_ANY(), 'Pod');
-
-  my $textctrl = Wx::RichTextCtrl->new ($frame);
-  $textctrl->BeginLeftIndent(100);
-  $textctrl->WriteText ('abc');
-  $textctrl->Newline;
-
-  $textctrl->EndAllStyles;
-  $textctrl->Clear;
-  $textctrl->WriteText ('def');
-  $textctrl->Newline;
-
-  $frame->SetSize (800, 800);
-  $frame->Show;
-  $app->MainLoop;
-  exit 0;
-}
 
 $str = <<'HERE';
 =head1 NAME
@@ -176,6 +53,12 @@ Foo - bar
 Foo2 - bar2
 
 =head1 DESCRIPTION
+
+L<libE<sol>Foo.pm> ...
+L<Tk::HistEntry/BUGS/TODO> ...
+L<Tk::HistEntry/BUGSE<sol>TODO> ...
+L<Devel::REPL::Plugin::Nopaste/#nopaste> ...
+L<Getopt::Long::Descriptive/%arg>
 
 Breakable words and then S<block of non breaking spaces extending to HERE>
 blah blah.
@@ -452,7 +335,8 @@ HERE
   } else {
     # $browser->goto_pod (string => "=pod\n\nabc");
     # $browser->goto_pod (string => $str);
-    $browser->goto_pod (module => 'Math::Symbolic::AuxFunctions');
+     $browser->goto_pod (module => 'Math::NumSeq::HafermanZ');
+    # $browser->goto_pod (module => 'Math::Symbolic::AuxFunctions');
     # $browser->goto_pod (string => $str);
     # $browser->goto_pod (module => 'Math::PlanePath::PeanoCurve',
     #                     section => 'SEE ALSO');

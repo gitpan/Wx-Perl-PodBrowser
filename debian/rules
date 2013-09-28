@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -21,3 +21,6 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/perlmodule.mk
 
 DEB_INSTALL_EXAMPLES_libwx-perl-podbrowser-perl = examples/*
+
+install/libwx-perl-podbrowser-perl::
+	dh_install wx-perl-podbrowser.desktop /usr/share/applications/

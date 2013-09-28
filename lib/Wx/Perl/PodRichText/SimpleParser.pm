@@ -21,7 +21,7 @@ use 5.008;
 use strict;
 use warnings;
 use base 'Pod::Simple';
-our $VERSION = 13;
+our $VERSION = 14;
 
 # uncomment this to run the ### lines
 # use Smart::Comments;
@@ -183,9 +183,7 @@ sub _handle_element_start {
     ### link type: $attrs->{'type'}
     if ($attrs->{'type'} eq 'pod') {
       # ENHANCE-ME: escape "/" etc in "to", and maybe in "section"
-      my $url = 'pod://';
-      if (defined $attrs->{'to'})      { $url .= $attrs->{'to'}; }
-      if (defined $attrs->{'section'}) { $url .= "#$attrs->{'section'}"; }
+      my $url = _pod_url_make($attrs->{'to'},$attrs->{'section'});
       $richtext->BeginURL ($url);
       $self->{'in_URL'}++;
     } elsif ($attrs->{'type'} eq 'url') {
@@ -318,6 +316,37 @@ sub set_item_range {
       $richtext->{'section_positions'}->{$lname} = $startpos;
     }
   }
+}
+
+# ENHANCE-ME: Is there any merit in some % escaping in the pod url?
+# Don't want to obscure ":" in the module name part, and the only ambiguity
+# would be a "#" in the module name, which is probably unusable as code and
+# unlikely as a pod document.
+
+# return a "pod://..." url string
+sub _pod_url_make {
+  my ($target, $section) = @_;
+  if (! defined $target) { $target = ''; }
+  if (! defined $section) { $section = ''; }
+  return  'pod://' . $target . ($section eq '' ? '' : '#'.$section);
+
+  # my $uri_escapes = "%/#";
+  # $target = URI::Escape::uri_escape($target,$uri_escapes);
+  # $section = URI::Escape::uri_escape($section,$uri_escapes);
+}
+# return ($target,section)
+#     or ($target) if no "#section" part
+#     or () if not a pod://
+sub _pod_url_split {
+  my ($url) = @_;
+  $url =~ m{^pod://([^#]+)?(#(.*))?} or return;
+  my $target = $1;
+  my $section = $3;
+  return ($target,
+          (defined $section ? $section : ()));
+
+  # $target = URI::Escape::uri_unescape($target);
+  # if (defined $section) { $section = URI::Escape::uri_unescape($section); }
 }
 
 1;

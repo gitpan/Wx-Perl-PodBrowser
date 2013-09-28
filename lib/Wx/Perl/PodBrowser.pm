@@ -16,8 +16,16 @@
 # with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Maybe Wx::Perl::PodBrowser->goto_pod (module => $module)
-# for combined create, Show, goto.
+# Maybe $browser = Wx::Perl::PodBrowser->goto_pod (module => $module)
+# for combined new(), Show(), goto_pod().
+#
+# Maybe:
+# $podrichtext->goto_pod (forward => $n)
+# $podrichtext->goto_pod (backward => $n)
+# $podrichtext->goto_pod (source => $bool)   # show pod source
+#                         source_linenum => 
+#
+# Option to close pod window when main win destroyed.
 
 
 package Wx::Perl::PodBrowser;
@@ -30,7 +38,7 @@ use Wx::Event 'EVT_MENU';
 use Wx::Perl::PodRichText;
 
 use base 'Wx::Frame';
-our $VERSION = 13;
+our $VERSION = 14;
 
 # uncomment this to run the ### lines
 # use Smart::Comments;
@@ -619,8 +627,9 @@ The optional C<$parent>, C<$id> and C<$title> arguments are per
 C<< Wx::Frame->new() >>.
 
 The default C<$title> is "POD Browser".  An application could set something
-more specific if displaying its help pages, either when creating the browser
-or later with the usual C<Wx::Frame> method C<< $browser->SetTitle() >>.
+more specific if displaying its own help pages, either when creating the
+browser or later with the usual C<Wx::TopLevelWindow> method
+C<< $browser->SetTitle($title) >>.
 
 =back
 

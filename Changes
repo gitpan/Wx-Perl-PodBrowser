@@ -17,6 +17,9 @@ with Wx-Perl-PodBrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+Version 14, September 2013
+    - desktop file and debian menu entry
+
 Version 13, July 2013
     - goto_pod() new heading_num=>$n
     - fix don't show =encoding charset name in the text

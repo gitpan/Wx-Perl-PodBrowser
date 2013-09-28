@@ -24,8 +24,77 @@ use Wx;
 use Wx::Perl::PodRichText;
 
 # uncomment this to run the ### lines
-use Devel::Comments;
+# use Smart::Comments;
 
+
+{
+  unshift @INC, '../el/devel';
+  require MyLocatePerl;
+  require MyStuff;
+
+  my $verbose = 0;
+
+  sub zap_to_first_pod {
+    my ($str) = @_;
+
+    if ($str =~ /^=/) {
+      return $str;
+    }
+
+    my $pos = index ($str, "\n\n=");
+    if ($pos < 0) {
+      return $str;
+    }
+    my $pre = substr($str,0,$pos);
+    my $post = substr($str,$pos);
+    $pre =~ tr/\n//cd;
+
+    ### $pre
+    return $pre.$post;
+  }
+  ### zap: zap_to_first_pod("blah\nblah\n\n\n=pod")
+
+  sub zap_pod_verbatim {
+    my ($str) = @_;
+    $str =~ s/^ .*//mg;
+    return $str;
+  }
+
+  my $X_re = qr/X<+([^>]|E<[^>]*>)*?>/;  # $1=contained text
+
+  sub grep_X_index_entry {
+    my ($filename, $str) = @_;
+    $str = zap_to_first_pod($str);
+    $str = zap_pod_verbatim($str);
+    ### $str
+    if ($str =~ $X_re) {
+      my $pos = $-[0];
+      my ($linenum, $colnum) = MyStuff::pos_to_line_and_column($str,$pos);
+      my $linestr = MyStuff::line_at_pos($str, $pos);
+      print "$filename:$linenum:$colnum: $linestr",
+    }
+  }
+
+  my $l = MyLocatePerl->new (include_pod => 1,
+                             exclude_t => 1);
+  while (my ($filename, $str) = $l->next) {
+    #  next if $filename =~ m{/perltoc\.pod$};
+    if ($verbose) { print "look at $filename\n"; }
+    grep_X_index_entry($filename,$str);
+  }
+
+  exit 0;
+
+  #  X<Y
+
+=head1 SEE ALSO
+
+X<Foo,
+Bar>,
+X<Foo>
+
+=cut
+}
 
 {
   my $app = Wx::SimpleApp->new;

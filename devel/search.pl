@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Copyright 2012 Kevin Ryde
+# Copyright 2012, 2013 Kevin Ryde
 
 # This file is part of Wx-Perl-PodBrowser.
 #
@@ -45,51 +45,18 @@ use Devel::Comments;
 
   my $search_sizer = Wx::BoxSizer->new (Wx::wxHORIZONTAL());
   {
-    my $search = Wx::SearchCtrl->new ($search_panel,
-                                      Wx::wxID_ANY(),
-                                      '', # initial value
-                                      Wx::wxDefaultPosition(),
-                                      Wx::wxDefaultSize(),
-                                      Wx::wxTE_PROCESS_ENTER());
+    my $search = $self->{'search'}
+      = Wx::SearchCtrl->new ($search_panel,
+                             Wx::wxID_ANY(),
+                             '', # initial value
+                             Wx::wxDefaultPosition(),
+                             Wx::wxDefaultSize(),
+                             Wx::wxTE_PROCESS_ENTER());
     $search->ShowCancelButton(1);
-    $search->SetValue('PodB');
+    $search->SetValue('Pod');
 
     Wx::Event::EVT_SEARCHCTRL_SEARCH_BTN
-        ($self, $search, sub {
-           my ($self, $event) = @_;
-           print "search\n";
-           my $podtext = $self->{'podtext'};
-           my ($from, $to) = $podtext->GetSelection;
-           ### $from
-           if ($from == $to) {
-             $from = $to = 0;
-           }
-           my $str = $podtext->GetValue;
-           my $search_str = $search->GetValue;
-
-           my $case_checkbox = $self->{'case_checkbox'};
-           unless ($case_checkbox->GetValue) {
-             $str = lc($str);
-             $search_str = lc($search_str);
-           }
-           # $str =~ s/$linebreak/\n/g;
-           ### $search_str
-           ### $to
-
-           if ((($from = index($str, $search_str, $from+1)) >= 0)
-               || ($self->{'wrap_checkbox'}->GetValue
-                   && ($from = index($str, $search_str)) >= 0)) {
-             ### found ...
-             $to = $from + length($search_str);
-             ### $from
-             ### $to
-             $podtext->SetSelection ($from, $to);
-             $podtext->ShowPosition($from);
-           } else {
-             ### not found ...
-             return;
-           }
-         });
+        ($self, $search, \&search_next);
     Wx::Event::EVT_SEARCHCTRL_CANCEL_BTN ($self, $search, sub {
                                             my ($self, $event) = @_;
                                             print "cancel\n";
@@ -99,6 +66,7 @@ use Devel::Comments;
     Wx::Event::EVT_TEXT_ENTER( $self, $search, sub {
                                  my ($self, $event) = @_;
                                  print "enter\n";
+                                 search_next($self,$event);
                                } );
     $search->SetFocus;
     $search_sizer->Add ($search, 1, Wx::wxGROW()|Wx::wxRIGHT(), 15);
@@ -108,14 +76,18 @@ use Devel::Comments;
     my $next_button
       = Wx::Button->new ($search_panel, Wx::wxID_ANY(),
                          Wx::GetTranslation('Next'));
-    Wx::Event::EVT_BUTTON ($self, $next_button, sub {});
+    Wx::Event::EVT_BUTTON ($self, $next_button, \&search_next);
     $search_sizer->Add ($next_button, 0, Wx::wxGROW(), 0);
   }
   {
     my $prev_button
       = Wx::Button->new ($search_panel, Wx::wxID_ANY(),
                          Wx::GetTranslation('Prev'));
-    Wx::Event::EVT_BUTTON ($self, $prev_button, sub {});
+    Wx::Event::EVT_BUTTON ($self, $prev_button, sub {
+                             my ($self,$event) = @_;
+                             ### Prev: $event
+                             \&search_next($self,$event,1);
+                           });
     $search_sizer->Add ($prev_button, 0, Wx::wxGROW(), 0);
   }
   {
@@ -154,5 +126,54 @@ use Devel::Comments;
 
   $app->MainLoop;
   exit 0;
-}
 
+  sub search_next {
+    my ($self, $event, $prev) = @_;
+    print "search\n";
+    my $podtext = $self->{'podtext'};
+    my ($from, $to) = $podtext->GetSelection;
+    ### $from
+    if ($from == $to) {
+      $from = $to = 0;
+    }
+    my $search = $self->{'search'};
+    my $search_str = $search->GetValue;
+
+    my $str = $podtext->GetValue;
+    my $case_checkbox = $self->{'case_checkbox'};
+    unless ($case_checkbox->GetValue) {
+      $str = lc($str);
+      $search_str = lc($search_str);
+    }
+    # $str =~ s/$linebreak/\n/g;
+    ### $search_str
+    ### $to
+
+    if ($prev) {
+      $from = rindex($str, $search_str, $from-1);
+      if ($from < 0 && $self->{'wrap_checkbox'}->GetValue) {
+        ### try wrap ...
+        $from = rindex($str, $search_str);
+      }
+    } else {
+      $from = index($str, $search_str, $from+1);
+      if ($from < 0 && $self->{'wrap_checkbox'}->GetValue) {
+        ### try wrap ...
+        $from = index($str, $search_str);
+      }
+    }
+    if ($from < 0) {
+      ### not found ...
+      return;
+    }
+    ### found ...
+    $to = $from + length($search_str);
+    ### $from
+    ### $to
+    $podtext->SetSelection ($from, $to);
+    # Have sometimes seen the selected text not all on screen if only
+    # ShowPosition($from).  Seems better if ShowPosition($to) first.
+    $podtext->ShowPosition($to);
+    $podtext->ShowPosition($from);
+  }
+}

@@ -4,6 +4,8 @@ debian/changelog
 debian/compat
 debian/control
 debian/copyright
+debian/menu
+debian/NOT-YET-USED--mime
 debian/rules
 debian/source/format
 debian/watch
@@ -33,6 +35,7 @@ t/PodRichText-SimpleParser.t
 t/PodRichText-weaken.t
 t/PodRichText.t
 wx-perl-podbrowser
+wx-perl-podbrowser.desktop
 xt/0-examples-xrefs.t
 xt/0-file-is-part-of.t
 xt/0-META-read.t
